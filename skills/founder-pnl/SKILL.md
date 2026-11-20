@@ -71,7 +71,8 @@ All in full Rupiah, no rounding until the last step.
 10. **Owner's drawings (prive) are not a business cost.** If you find them in
     purchases or costs, take them out and state the amount.
 
-Compare with the benchmarks in `founder/profile.md`. If there is none, use
+Compare with the benchmarks in `founder/profile.md`, and with last month if
+`founder/reports/pnl/` holds its saved report. If there is none, use
 defaults for the business type and say which: F&B direct cost 28 to 35% and
 labour 18 to 25%; for retail and online sellers ask for the target gross margin
 (it varies by category); a healthy net margin is above 10% for most small
@@ -124,6 +125,31 @@ Source: [the tabs and rows used]
 
 With more than one outlet, store or channel: one block each, then one comparison
 line: which has the highest and lowest net margin, with the gap in Rupiah.
+
+## Save the report
+
+After showing the report, save it so next time (and the founder-id dashboard) can
+use it. Two files in `founder/reports/pnl/`, named by the month (and outlet):
+
+- `2027-01.md`: the report exactly as shown above.
+- `2027-01.json`: its key numbers, in this shape (money in full Rupiah as plain
+  numbers, percentages as fractions: 0.45 means 45%):
+
+```json
+{
+  "month": "2027-01", "outlet": "Blok M",
+  "gross_sales": 84000000, "discounts": 1200000, "platform_commission": 6900000,
+  "net_sales": 75900000, "direct_cost": 33500000, "labour": 18950000, "fixed_costs": 10500000,
+  "pph_final": 420000, "other_costs": 0, "net_profit": 12530000,
+  "channels": {"walk-in": 45500000, "GoFood/GrabFood": 30400000},
+  "estimates": ["direct cost from purchases, no closing stock"]
+}
+```
+
+Get the paths with `python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `path pnl 2027-01`, write both files, then run
+`python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `check founder/reports/pnl/2027-01.json`. It checks that net_profit = net_sales - direct_cost - labour - fixed_costs - pph_final - other_costs (net_sales is already after the platform commission); one file per outlet, the outlet's name added to the file name.
+If it reports a problem, fix the numbers (never the check) and say what changed.
+Copy numbers from the report; do not compute new ones for the JSON.
 
 ## Thresholds the owner can change (in founder/profile.md)
 

@@ -21,6 +21,8 @@ argument-hint: "[weeks, default 4]"
   marketplace campaign).
 - At the start of each month, before Lebaran, or when `/founder-weekly-report`
   flags cash falling two weeks running.
+- The last weekly reports in `founder/reports/weekly/` are a quick source for the
+  sales pattern when no 8-week export is at hand; say so if you use them.
 
 This skill is about **cash**, not profit. A business that is profitable on its
 P&L can run out of cash because bills fall due in the same week, marketplace
@@ -116,6 +118,34 @@ Week x (dd-dd): negative Rp xxx.xxx on [day] because [which payment].
 
 Source: [tabs, rows, balance date]
 ```
+
+## Save the report
+
+After showing the report, save it so next time (and the founder-id dashboard) can
+use it. Two files in `founder/reports/cashflow/`, named by the date of the opening balance:
+
+- `2027-02-03.md`: the report exactly as shown above.
+- `2027-02-03.json`: its key numbers, in this shape (money in full Rupiah as plain
+  numbers, percentages as fractions: 0.45 means 45%):
+
+```json
+{
+  "from": "2027-02-03", "opening_balance": 18000000, "source": "bank app + drawer (from memory)",
+  "pessimistic_drop": 0.15,
+  "weeks": [
+    {"label": "1", "start": "2027-02-03", "end": "2027-02-09", "cash_in": 21800000,
+     "suppliers": 9800000, "payroll": 0, "fixed": 1800000, "routine": 3100000, "big": 0,
+     "cash_out": 14700000, "end_balance": 25100000, "lowest": 8200000, "lowest_day": "Tue", "status": "safe"},
+    "... one per week"
+  ],
+  "options": ["Move the espresso machine to next month", "Ask the milk supplier for 14-day terms"]
+}
+```
+
+Get the paths with `python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `path cashflow 2027-02-03`, write both files, then run
+`python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `check founder/reports/cashflow/2027-02-03.json`. It checks that each week's parts add up to cash_out, each week opens with the last week's end_balance, status is safe, watch or at risk.
+If it reports a problem, fix the numbers (never the check) and say what changed.
+Copy numbers from the report; do not compute new ones for the JSON.
 
 ## Thresholds the owner can change (in founder/profile.md)
 

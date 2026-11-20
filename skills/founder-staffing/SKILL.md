@@ -118,6 +118,30 @@ Hours added: xx/week -> cost Rp xxx.xxx/month -> sales saved about Rp xxx.xxx/mo
 Source: [export file, period, rows; roster from ...]
 ```
 
+## Save the report
+
+After showing the report, save it so next time (and the founder-id dashboard) can
+use it. Two files in `founder/reports/staffing/`, named by the month or period:
+
+- `2027-01.md`: the report exactly as shown above.
+- `2027-01.json`: its key numbers, in this shape (money in full Rupiah as plain
+  numbers, percentages as fractions: 0.45 means 45%):
+
+```json
+{
+  "period": "2027-01", "labour_pct": 0.247, "labour_pct_after": 0.221,
+  "hours_cut": 14, "hours_added": 6, "saving_month": 1990000,
+  "standard": "cashier 15 transactions/hour (assumed)",
+  "heatmap": {"days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "hours": [6, 7, 8],
+              "values": [[3.1, 2.8, 3.0, 2.9, 3.3, 1.2, 0.9], ["... one row per hour"]]}
+}
+```
+
+Get the paths with `python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `path staffing 2027-01`, write both files, then run
+`python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `check founder/reports/staffing/2027-01.json`. It checks that one heatmap row per hour, one value per day.
+If it reports a problem, fix the numbers (never the check) and say what changed.
+Copy numbers from the report; do not compute new ones for the JSON.
+
 ## Thresholds the owner can change (in founder/profile.md)
 
 - Standard per staff per role

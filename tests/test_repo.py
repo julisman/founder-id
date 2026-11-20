@@ -70,6 +70,9 @@ class Repo(unittest.TestCase):
             self.assertIn("founder/profile.md", text, s)
             self.assertIn("## Verification rules (required)", text, s)
             self.assertIn("## Output format (fixed)", text, s)
+            self.assertIn("## Save the report", text, s)
+            self.assertIn("founder/reports/", text, s)
+            self.assertIn("reports.py", text, s)
 
     def test_plugin_manifests(self):
         with open(os.path.join(ROOT, ".claude-plugin", "plugin.json")) as fh:

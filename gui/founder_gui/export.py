@@ -25,7 +25,7 @@ def _get(app, url):
 def snapshot(app, p):
     base = "/api/p/%s" % p.id
     data = {"/api/projects": [app.summary(p)]}
-    for view in ("state", "board", "competitors", "panel", "pricing", "cfo", "offer", "rounds"):
+    for view in ("state", "board", "competitors", "panel", "pricing", "cfo", "offer", "run", "rounds"):
         try:
             data["%s/%s" % (base, view)] = _get(app, "%s/%s" % (base, view))
         except Exception:

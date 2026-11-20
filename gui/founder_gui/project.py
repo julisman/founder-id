@@ -116,7 +116,7 @@ class Project:
         files = self.scan()
         st = steps.status(files, active_runs)
         verdict = self.verdict()
-        docs = [{"path": p, "step": steps.owner(p), "mtime": files[p]}
+        docs = [{"path": p, "step": steps.owner(p) or ("reports" if p.startswith("reports/") else None), "mtime": files[p]}
                 for p in sorted(files) if p.endswith((".md", ".csv", ".json"))
                 and not p.startswith(("panel/briefs/", "panel/answers/"))]
         return {
@@ -125,7 +125,43 @@ class Project:
             "verdict": verdict, "docs": docs, "file_count": len(files),
             "updated": max(files.values()) if files else None,
             "checklist": self.checklist(),
+            "profile": self.profile(),
+            "run_summary": self.run_summary(),
         }
+
+    def run_summary(self):
+        """One line for the pipeline: what the run skills have saved since opening."""
+        if not os.path.isdir(os.path.join(self.fdir, "reports")):
+            return None
+        rp = tools.reports().load_all(self.fdir)
+        bits = []
+        if rp["weekly"]:
+            bits.append("%d weekly report(s), latest %s" % (len(rp["weekly"]), rp["weekly"][0]["_key"]))
+        if rp["cashflow"]:
+            risk = sum(1 for w in rp["cashflow"][0].get("weeks") or [] if w.get("status") == "at risk")
+            bits.append("cash forecast from %s%s" % (rp["cashflow"][0]["_key"], ", %d week(s) at risk" % risk if risk else ""))
+        if rp["pnl"]:
+            bits.append("P&L for %s" % rp["pnl"][0].get("month", rp["pnl"][0]["_key"]))
+        bad = sum(1 for docs in rp.values() for d in docs if d.get("_problems"))
+        if bad:
+            bits.append("%d report(s) that do not add up" % bad)
+        return "; ".join(bits) or None
+
+    def profile(self):
+        """founder/profile.md (written by founder-plan) as [{section, rows: [[key, value]]}], for the pipeline card."""
+        text = self.read("profile.md") if self.exists() else None
+        if not text:
+            return None
+        out, cur = [], None
+        for line in text.splitlines():
+            if line.startswith("## "):
+                cur = {"section": line[3:].strip(), "rows": []}
+                out.append(cur)
+            elif cur is not None:
+                m = re.match(r"^\s*[-*]\s*([^:]+):\s*(.+)$", line)
+                if m:
+                    cur["rows"].append([m.group(1).strip(), m.group(2).strip()])
+        return [sct for sct in out if sct["rows"]] or None
 
     def verdict(self):
         if not os.path.exists(os.path.join(self.fdir, "numbers.json")) and \
@@ -296,6 +332,31 @@ class Project:
         volume = scale("volume")
         a = tools.unit_economics().analyse(spec, price=price, volume=volume)
         return tools.clean(a)
+
+    # ── after opening: the run skills' saved reports ───────────────────────────
+    def run(self):
+        """Every saved report (founder/reports/), newest first, plus the plan's targets to read them against."""
+        rp = tools.reports()
+        reports = rp.load_all(self.fdir) if self.exists() else {k: [] for k in rp.KINDS}
+        targets = {}
+        spec = self.numbers()
+        if spec:
+            try:
+                a = tools.unit_economics().analyse(spec)
+                if a["breakeven_revenue_per_day"] != float("inf"):
+                    targets["breakeven_week"] = a["breakeven_revenue_per_day"] * 7
+                    targets["breakeven_day"] = a["breakeven_revenue_per_day"]
+                targets["plan_week"] = a["plan_per_day"] * 7 * a["price"]
+                goods = sum(c for _, c, k in a["variable_lines"] if k == "goods") / a["price"]
+                targets["direct_cost_plan"] = goods
+                targets["direct_cost_alert"] = goods + 0.05
+            except Exception:
+                pass
+        kinds = [{"kind": k, "skill": v["skill"], "count": len(reports[k]),
+                  "latest": reports[k][0]["_key"] if reports[k] else None,
+                  "problems": sum(1 for d in reports[k] if d.get("_problems"))} for k, v in rp.KINDS.items()]
+        return tools.clean({"reports": reports, "kinds": kinds, "targets": targets,
+                            "any": any(reports[k] for k in reports)})
 
     # ── offer ──────────────────────────────────────────────────────────────────
     def offer(self):

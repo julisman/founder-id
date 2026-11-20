@@ -9,7 +9,7 @@
   const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
 
   const STEP_TAB = { board: "board", competitors: "competitors", consumer: "panel", pricing: "pricing", offer: "offer", cfo: "cfo" };
-  const TABS = ["pipeline", "board", "competitors", "panel", "pricing", "offer", "cfo", "docs", "rounds"];
+  const TABS = ["pipeline", "board", "competitors", "panel", "pricing", "offer", "cfo", "run", "docs", "rounds"];
   const TAB_STEPS = { board: ["board"], competitors: ["competitors"], panel: ["consumer"], pricing: ["pricing", "consumer"], offer: ["offer", "consumer"], cfo: ["cfo"] };
   const S = { projects: [], pid: null, tab: "pipeline", sub: null, query: {}, st: null, ui: {} };
 
@@ -174,6 +174,12 @@
       (checks ? '<ul class="checks">' + checks + "</ul>" : '<p class="muted">' + esc(t("No numbers yet. The verdict is computed once the CFO has run.")) + "</p>") +
       (next ? '<div class="banner info" style="margin:14px 0 0"><span>' + esc(t("Next step:")) + " <b>" + esc(stepName(next)) + "</b> <code class=\"copy\" data-copy=\"" + esc(cmd(next)) + '">' + esc(cmd(next)) + "</code></span></div>" : "") + "</div>";
     h += '<div class="card"><h2>' + esc(t("Board conditions")) + "</h2>" + checklist(st.checklist) + "</div></div>";
+    if (st.profile) h += '<div class="card" style="margin-top:14px"><div class="card-head"><h2>' + esc(t("Business profile")) + '</h2><a class="btn sm" href="#/p/' + S.pid + '/docs/profile.md">profile.md</a></div>' +
+      '<p class="muted" style="font-size:12px;margin-top:-4px">' + esc(t("Written by founder-plan from the numbers. The run skills read their targets and alert thresholds here.")) + '</p><div class="grid g3">' +
+      st.profile.map(sec => '<div><h3>' + esc(sec.section) + '</h3><table class="t">' + sec.rows.map(([k, v]) => "<tr><td>" + esc(k) + '</td><td class="r' + (v.trim() === "?" || /\?/.test(v) ? " muted" : "") + '">' +
+        esc(v) + "</td></tr>").join("") + "</table></div>").join("") + "</div></div>";
+    if (st.run_summary) h += '<div class="banner info" style="margin-top:14px"><span>' + esc(t("After opening: {s}", { s: st.run_summary })) +
+      '</span><a class="btn sm" href="#/p/' + S.pid + '/run">' + esc(t("Open")) + "</a></div>";
     h += '<h2 style="margin:22px 0 10px">' + esc(t("The eleven steps")) + '</h2><div class="pipe">';
     for (const s of st.steps) {
       const open = STEP_TAB[s.key] ? "#/p/" + S.pid + "/" + STEP_TAB[s.key] : "#/p/" + S.pid + "/docs/" + encodeURIComponent(s.primary);
@@ -245,12 +251,13 @@
       Object.entries(types).slice(0, 3).map(([k, n]) => kpi(n, k)).join("") + "</div>";
     h += '<div class="grid g-side"><div class="card"><h2>' + esc(t("Price vs rating")) + '</h2><div id="sc"></div></div><div class="card"><h2>' + esc(t("The gap")) + "</h2>" + doc(c.report, "competitors.md", "competitors") + "</div></div>";
     h += '<div class="card" style="margin-top:14px"><h2>' + esc(t("Every competitor")) + '</h2><div class="table-wrap"><table class="t"><thead><tr><th>' +
-      [t("name"), t("type"), t("where"), t("price"), t("rating"), t("reviews"), t("positioning")].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" +
+      [t("name"), t("type"), t("where"), t("price"), t("price seen on"), t("rating"), t("reviews"), t("trust signals"), t("positioning")].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" +
       c.rows.map(r => "<tr><td>" + (r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.name) + "</a>" : esc(r.name)) + "</td><td>" + chip("", r.type || "") + "</td><td>" + esc(r.location_or_channel || "") +
-        '</td><td class="r">' + esc(r.price_of_comparable_item || "") + '</td><td class="r">' + esc(r.rating || "") + '</td><td class="r">' + esc(r.review_count || "") + "</td><td>" + esc(r.positioning_line || "") + "</td></tr>").join("") +
+        '</td><td class="r">' + esc(r.price_of_comparable_item || "") + "</td><td>" + esc(r.price_channel || "") + '</td><td class="r">' + esc(r.rating || "") + '</td><td class="r">' + esc(r.review_count || "") +
+        "</td><td>" + esc(r.trust_signals || "") + "</td><td>" + esc(r.positioning_line || "") + "</td></tr>").join("") +
       "</tbody></table></div></div>";
     el.innerHTML = h;
-    Charts.scatter($("#sc"), { points: c.rows.map((r, i) => ({ x: r.price, y: r.rating_num, label: r.name, cls: { direct: "f3", indirect: "f2", substitute: "f4" }[r.type] || "f" + ((i % 5) + 1) })),
+    Charts.scatter($("#sc"), { points: c.rows.map((r, i) => ({ x: r.price, y: r.rating_num, label: r.name, cls: { direct: "f3", indirect: "f2", substitute: "f4", informal: "f5" }[r.type] || "f" + ((i % 5) + 1) })),
       xfmt: money2, yfmt: v => (+v).toFixed(1), xlabel: t("price of the comparable item"), ylabel: t("rating"),
       vline: ours && ours.price ? { x: ours.price, label: t("you {p}", { p: money2(ours.price) }) } : null });
   };
@@ -286,8 +293,10 @@
       '<p class="muted" style="font-size:12px">' + esc(t("Seed {s}: the same cards can be dealt again.", { s: p.seed })) + "</p></div></div>";
     if (res) {
       const barsFor = (rows) => '<div class="bars">' + rows.map(([k, n, r]) => '<div class="bar"><span class="lbl" title="' + esc(k) + '">' + esc(k) + ' <small>(' + n + ')</small></span><span class="track"><i style="width:' + (r * 100) + '%"></i></span><span class="n">' + pct(r) + "</span></div>").join("") + "</div>";
-      h += '<div class="grid g3" style="margin-top:14px"><div class="card"><h3>' + esc(t("By segment")) + "</h3>" + barsFor(res.by_segment) + '</div><div class="card"><h3>' + esc(t("By behaviour")) + "</h3>" + barsFor(res.by_behaviour) +
-        '</div><div class="card"><h3>' + esc(t("By income")) + "</h3>" + barsFor(res.by_income) + "</div></div>";
+      const region = res.by_region && res.by_region.length > 1;
+      h += '<div class="grid ' + (region ? "g4" : "g3") + '" style="margin-top:14px"><div class="card"><h3>' + esc(t("By segment")) + "</h3>" + barsFor(res.by_segment) + '</div><div class="card"><h3>' + esc(t("By behaviour")) + "</h3>" + barsFor(res.by_behaviour) +
+        '</div><div class="card"><h3>' + esc(t("By income")) + "</h3>" + barsFor(res.by_income) + "</div>" +
+        (region ? '<div class="card"><h3>' + esc(t("By region")) + "</h3>" + barsFor(res.by_region) + "</div>" : "") + "</div>";
       const reasons = (rows, total) => '<div class="reasons">' + rows.map(([code, n, quotes]) => '<div class="reason"><div class="bar"><span class="lbl"><b>' + esc(code) + '</b></span><span class="track"><i style="width:' + (100 * n / Math.max(1, total)) + '%;background:var(--c3)"></i></span><span class="n">' + n + "</span></div>" +
         quotes.map(q => '<div class="q">"' + esc(q) + '"</div>').join("") + "</div>").join("") + "</div>";
       const flips = {};
@@ -422,8 +431,18 @@
       c.sensitivity.map(s => { const r = s.result; return "<tr><td>" + esc(s.label) + '</td><td class="r">' + [money2(r.price), money2(r.contribution), pct(r.margin_at_plan), intf(r.breakeven_per_day),
         '<span class="' + (r.year1_profit >= 0 ? "up" : "down") + '">' + money(r.year1_profit) + "</span>", money(r.cash_needed), r.payback_month ? t("month {m}", { m: r.payback_month }) : "n/a"].join('</td><td class="r">') + "</td></tr>"; }).join("") +
       "</tbody></table></div></div>";
-    h += '<div class="grid g3" style="margin-top:14px">' + items(t("Cost of one {u}", { u }), a.variable_items) + items(t("Fixed, every month"), a.fixed_items) + items(t("Startup, once"), a.startup_items) + "</div>";
-    h += '<div class="grid g2" style="margin-top:14px"><div class="card"><h2>cfo.md</h2>' + doc(c.report, "cfo.md", "cfo") + '</div><div class="card"><h2>cfo-sources.md</h2>' + (doc(c.sources, "cfo-sources.md", "cfo") || '<p class="muted">' + esc(t("Not written yet.")) + "</p>") + "</div></div>";
+    const season = (c.spec.season || []);
+    h += '<div class="card" style="margin-top:14px"><h2>' + esc(t("Year 1, month by month")) + '</h2><p class="muted" style="font-size:12px;margin-top:-4px">' +
+      esc(t("Profit counts every cost in its month (rent every month); cash is when money actually leaves (rent paid up front is in the startup spend).")) + '</p><div class="table-wrap"><table class="t"><thead><tr><th>' +
+      [t("month"), t("{u}s a day", { u }), t("season"), t("revenue"), t("one-off"), t("profit"), t("cash"), t("cumulative cash")].map(esc).join('</th><th class="r">') + "</th></tr></thead><tbody>" +
+      a.months.map((m, i) => "<tr><td>" + esc(m.label || String(m.month)) + '</td><td class="r">' + intf(m.per_day) + '</td><td class="r">' + (season[i] != null && season[i] !== 1 ? "×" + season[i] : "") +
+        '</td><td class="r">' + money(m.revenue) + '</td><td class="r">' + (m.one_off ? money(m.one_off) : "") + '</td><td class="r"><span class="' + (m.profit >= 0 ? "up" : "down") + '">' + money(m.profit) +
+        '</span></td><td class="r">' + money(m.cash) + '</td><td class="r"><span class="' + (m.cumulative >= 0 ? "up" : "down") + '">' + money(m.cumulative) + "</span></td></tr>").join("") +
+      "</tbody></table></div></div>";
+    const oneOff = (a.one_off || []).map(o => ({ label: o[1] + " (" + t("month {m}", { m: o[0] }) + ")", cost: o[2] }));
+    h += '<div class="grid g2" style="margin-top:14px">' + items(t("Cost of one {u}", { u }), a.variable_items) + items(t("Fixed, every month"), a.fixed_items) +
+      items(t("Startup, once"), a.startup_items) + (oneOff.length ? items(t("One-off, in year 1"), oneOff) : "") + "</div>";
+    h += '<div class="card" style="margin-top:14px"><h2>cfo.md</h2>' + doc(c.report, "cfo.md", "cfo") + '</div><div class="card" style="margin-top:14px"><h2>cfo-sources.md</h2>' + (doc(c.sources, "cfo-sources.md", "cfo") || '<p class="muted">' + esc(t("Not written yet.")) + "</p>") + "</div>";
     el.innerHTML = h;
     const drawYear = (b, w) => Charts.bars($("#y1"), { labels: b.months.map(m => m.label && isNaN(+m.label) ? m.label.slice(0, 3) : "M" + m.month), values: (w || b).months.map(m => m.profit), name: w ? t("profit (what-if)") : t("profit"),
       line: { name: t("cumulative, after startup"), values: (w || b).months.map(m => m.cumulative) }, ghost: w ? b.months.map(m => m.profit) : null, ghostName: t("profit (plan)"), yfmt: money, height: 280 });
@@ -461,6 +480,119 @@
       '<tr><td><b>' + esc(t("total")) + '</b></td><td class="r"><b>' + money(total, total < 100 ? 2 : 0) + "</b></td></tr></table></div>";
   }
 
+  // ── after opening: the run skills' saved reports ───────────────────────────
+  const RUN_KINDS = { weekly: "Weekly report", pnl: "Profit and loss", cashflow: "Cash forecast", "cost-leak": "Cost leak",
+    "product-mix": "Product mix", staffing: "Staffing" };
+  const RUN_CMD = { weekly: "founder-weekly-report", pnl: "founder-pnl", cashflow: "founder-cashflow", "cost-leak": "founder-cost-leak",
+    "product-mix": "founder-product-mix", staffing: "founder-staffing" };
+  const runCmd = k => "/founder-id:" + RUN_CMD[k];
+  const docLink = r => r && r._md ? '<a class="btn sm" href="#/p/' + S.pid + "/docs/" + encodeURIComponent(r._md) + '">' + esc(t("full report")) + "</a>" : "";
+  const probs = r => r && r._problems && r._problems.length ? '<div class="banner warn"><span>' + esc(t("{f} does not add up:", { f: r._file })) + " " +
+    r._problems.map(esc).join("; ") + "</span></div>" : "";
+  const STATUS_CHIP = { safe: "good", watch: "warn", "at risk": "bad" };
+  const QUAD = { star: ["Stars", "keep"], plowhorse: ["Plowhorses", "raise the price or cut the cost"], puzzle: ["Puzzles", "promote"],
+    dog: ["Dogs", "drop or redo"], new: ["New", "wait for data"] };
+
+  VIEWS.run = async el => {
+    const r = await api(P("run"));
+    const R = r.reports, T = r.targets;
+    if (!r.any) {
+      el.innerHTML = '<div class="empty-state" style="text-align:left;max-width:720px"><h1>' + esc(t("After opening")) + "</h1><p>" +
+        esc(t("Once the business is open, the run skills save every report in founder/reports/ and this page turns them into trends: weekly sales against break-even, direct cost, the cash forecast, the P&L month by month.")) +
+        "</p><pre>" + Object.keys(RUN_CMD).map(k => runCmd(k)).join("\n") + "</pre></div>";
+      return;
+    }
+    let h = '<div class="grid g3" style="margin-bottom:14px">' + r.kinds.map(k => '<div class="card"><div class="card-head"><h3>' + esc(t(RUN_KINDS[k.kind])) + "</h3>" +
+      (k.problems ? chip("bad", t("{n} with problems", { n: k.problems })) : k.latest ? chip("done", k.latest) : chip("", t("none yet"))) + '</div><div class="meta" style="display:flex;gap:8px;align-items:center">' +
+      "<small>" + esc(t("{n} saved", { n: k.count })) + '</small><code class="copy" data-copy="' + esc(runCmd(k.kind)) + '">' + esc(runCmd(k.kind)) + "</code></div></div>").join("") + "</div>";
+
+    // weekly
+    const weeks = (R.weekly || []).filter(w => !w._problems || !w._problems.length || w.net_sales != null).slice().reverse();
+    if (weeks.length) {
+      const w = weeks[weeks.length - 1], prev = weeks.length > 1 ? weeks[weeks.length - 2] : null;
+      const prevNet = w.prev_net_sales != null ? w.prev_net_sales : prev && prev.net_sales;
+      const diff = prevNet ? '<span class="' + (w.net_sales >= prevNet ? "up" : "down") + '">' + (w.net_sales >= prevNet ? "▲ " : "▼ ") + money(Math.abs(w.net_sales - prevNet)) + ", " + pct(Math.abs(w.net_sales / prevNet - 1)) + "</span>" : "";
+      const thr = w.direct_cost_threshold != null ? w.direct_cost_threshold : T.direct_cost_alert;
+      h += '<h2 style="margin:8px 0 10px">' + esc(t("Week {w}", { w: w.week })) + " <small class=\"muted\">" + esc((w.start || "") + " – " + (w.end || "")) + "</small></h2>";
+      h += probs(w) + '<div class="grid g4" style="margin-bottom:14px">' + kpi(money(w.net_sales), t("net sales"), diff) +
+        kpi(w.transactions != null ? w.transactions.toLocaleString("id-ID") : "n/a", t("transactions"), w.avg_ticket != null ? esc(t("average ticket {v}", { v: money(w.avg_ticket) })) : "") +
+        kpi(w.days_below_breakeven != null ? w.days_below_breakeven + "/7" : "n/a", t("days below break-even"), T.breakeven_day ? esc(t("break-even {v} a day", { v: money(T.breakeven_day) })) : "") +
+        kpi(w.direct_cost_pct != null ? pct(w.direct_cost_pct) : "n/a", t("direct cost (estimate)"), thr != null ? '<span class="' + (w.direct_cost_pct > thr ? "down" : "up") + '">' + esc(t("alert at {p}", { p: pct(thr) })) + "</span>" : "") + "</div>";
+      h += '<div class="grid g2"><div class="card"><div class="card-head"><h2>' + esc(t("Net sales by week")) + "</h2>" + docLink(w) + '</div><div id="run-weeks"></div></div>' +
+        '<div class="card"><h2>' + esc(t("Direct cost by week (estimate)")) + '</h2><div id="run-cost"></div></div></div>';
+      h += '<div class="grid g-side" style="margin-top:14px"><div class="card"><h2>' + esc(t("Last week, day by day")) + '</h2><div id="run-days"></div></div>' +
+        '<div class="card"><h2>' + esc(t("Channels")) + "</h2><div class=\"bars\">" + Object.entries(w.channels || {}).map(([k, v]) => '<div class="bar"><span class="lbl">' + esc(k) +
+          '</span><span class="track"><i style="width:' + (100 * v / Math.max(1, w.net_sales)) + '%"></i></span><span class="n">' + pct(v / Math.max(1, w.net_sales)) + "</span></div>").join("") + "</div></div></div>";
+      h += '<div class="card" style="margin-top:14px"><h2>' + esc(t("Alerts and actions")) + '</h2><div class="table-wrap"><table class="t"><thead><tr><th>' +
+        [t("week"), t("net sales"), t("alerts"), t("the one action"), t("last week's action")].map(esc).join("</th><th>") + "</th></tr></thead><tbody>" +
+        weeks.slice().reverse().map(x => "<tr><td>" + esc(x.week) + '</td><td class="r">' + money(x.net_sales) + "</td><td>" + ((x.alerts || []).map(a => chip("warn", a.text) +
+          (a.skill ? ' <code class="copy" data-copy="/founder-id:' + esc(a.skill) + '">/' + esc(a.skill) + "</code>" : "")).join("<br>") || '<span class="muted">' + esc(t("none")) + "</span>") +
+          "</td><td>" + esc(x.action || "") + '</td><td class="muted">' + esc(x.last_action || "") + "</td></tr>").join("") + "</tbody></table></div></div>";
+    }
+
+    // cash
+    const cf = (R.cashflow || [])[0];
+    if (cf && cf.weeks) {
+      h += '<h2 style="margin:22px 0 10px">' + esc(t("Cash forecast from {d}", { d: cf.from })) + "</h2>" + probs(cf);
+      h += '<div class="grid g-side"><div class="card"><div class="card-head"><h2>' + esc(t("End-of-week balance")) + "</h2>" + docLink(cf) + '</div><div id="run-cash"></div></div><div class="card"><h2>' +
+        esc(t("Weeks")) + '</h2><table class="t">' + cf.weeks.map(x => "<tr><td>" + esc(t("Week {w}", { w: x.label })) + "<br><small class=\"muted\">" + esc((x.start || "") + " – " + (x.end || "")) + '</small></td><td class="r">' +
+          '<span class="' + (x.end_balance >= 0 ? "up" : "down") + '">' + money(x.end_balance) + "</span></td><td>" + chip(STATUS_CHIP[x.status] || "", t(x.status)) + "</td></tr>").join("") + "</table>" +
+        ((cf.options || []).length ? "<h3 style=\"margin-top:12px\">" + esc(t("Options")) + "</h3><ul>" + cf.options.map(o => "<li>" + esc(o) + "</li>").join("") + "</ul>" : "") + "</div></div>";
+    }
+
+    // P&L
+    const pnl = (R.pnl || []).slice().reverse();
+    if (pnl.length) {
+      h += '<h2 style="margin:22px 0 10px">' + esc(t("Profit and loss by month")) + '</h2><div class="card"><div class="table-wrap"><table class="t"><thead><tr><th>' +
+        [t("month"), t("net sales"), t("direct cost"), t("labour"), t("fixed"), t("commission"), t("net profit"), t("net margin"), ""].map(esc).join('</th><th class="r">') + "</th></tr></thead><tbody>" +
+        pnl.map(m => "<tr><td>" + esc(m.month + (m.outlet ? " · " + m.outlet : "")) + (m._problems && m._problems.length ? " " + chip("bad", t("does not add up")) : "") + '</td><td class="r">' + money(m.net_sales) +
+          '</td><td class="r">' + money(m.direct_cost) + " <small>" + pct(m.direct_cost / m.net_sales) + '</small></td><td class="r">' + money(m.labour) + " <small>" + pct(m.labour / m.net_sales) +
+          '</small></td><td class="r">' + money(m.fixed_costs) + '</td><td class="r">' + (m.platform_commission != null ? money(m.platform_commission) : "") + '</td><td class="r"><span class="' +
+          (m.net_profit >= 0 ? "up" : "down") + '">' + money(m.net_profit) + '</span></td><td class="r">' + pct(m.net_profit / m.net_sales, 1) + '</td><td class="r">' + docLink(m) + "</td></tr>").join("") +
+        "</tbody></table></div></div>";
+    }
+
+    // cost leak, product mix, staffing
+    const cl = (R["cost-leak"] || [])[0], pm = (R["product-mix"] || [])[0], sf = (R.staffing || [])[0];
+    if (cl || pm) h += '<div class="grid g2" style="margin-top:22px">';
+    if (cl) h += '<div class="card"><div class="card-head"><h2>' + esc(t("Cost leak, {m}", { m: cl.month })) + "</h2>" + docLink(cl) + "</div>" + probs(cl) + '<table class="t">' +
+      (cl.items || []).map(x => "<tr><td>" + esc(x.item) + (x.cause ? '<br><small class="muted">' + esc(x.cause) + "</small>" : "") + '</td><td class="r">' + (x.gap_pct != null ? pct(x.gap_pct) : "") +
+        '</td><td class="r"><span class="down">' + money(x.gap_rp) + "</span></td></tr>").join("") + "</table>" +
+      ((cl.price_rises || []).length ? '<p class="muted" style="font-size:12px">' + esc(t("Price rises: {l}", { l: cl.price_rises.map(x => x.item + " " + money(x.from) + " → " + money(x.to)).join(", ") })) + "</p>" : "") + "</div>";
+    if (pm) {
+      const byQ = {}, cats = new Set((pm.items || []).map(x => x.category));
+      (pm.items || []).forEach(x => (byQ[x.quadrant] = byQ[x.quadrant] || []).push(x));
+      h += '<div class="card"><div class="card-head"><h2>' + esc(t("Product mix, {p}", { p: pm.period })) + "</h2>" + docLink(pm) + "</div>" + probs(pm) +
+        Object.keys(QUAD).filter(q => byQ[q]).map(q => "<h3>" + esc(t(QUAD[q][0])) + ' <small class="muted">' + esc(t(QUAD[q][1])) + '</small></h3><table class="t">' +
+          byQ[q].map(x => "<tr><td>" + esc(x.item) + (cats.size > 1 && x.category ? ' <small class="muted">' + esc(x.category) + "</small>" : "") + '</td><td class="r">' + x.qty.toLocaleString("id-ID") + '</td><td class="r">' + money(x.margin_unit) + "</td></tr>").join("") + "</table>").join("") + "</div>";
+    }
+    if (cl || pm) h += "</div>";
+    if (sf) {
+      const hm = sf.heatmap, mx = hm ? Math.max(...hm.values.flat()) : 1;
+      h += '<div class="card" style="margin-top:14px"><div class="card-head"><h2>' + esc(t("Staffing, {p}", { p: sf.period })) + "</h2>" + docLink(sf) + "</div>" + probs(sf) +
+        '<p>' + esc(t("Labour {a} → {b} of net sales", { a: pct(sf.labour_pct, 1), b: sf.labour_pct_after != null ? pct(sf.labour_pct_after, 1) : "n/a" })) +
+        (sf.saving_month != null ? "<br>" + esc(t("saving {v} a month", { v: money(sf.saving_month) })) : "") + "</p>" +
+        (hm ? '<div class="table-wrap"><table class="t heat"><thead><tr><th></th><th>' + hm.days.map(esc).join("</th><th>") + "</th></tr></thead><tbody>" +
+          hm.hours.map((hr, i) => "<tr><td>" + esc(String(hr)) + "</td>" + hm.values[i].map(v => '<td class="r" style="background:color-mix(in srgb,var(--accent) ' + Math.round(70 * v / mx) + '%,transparent)">' +
+            v + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" : "") + "</div>";
+    }
+    el.innerHTML = h;
+
+    if (weeks.length) {
+      const w = weeks[weeks.length - 1], thr = w.direct_cost_threshold != null ? w.direct_cost_threshold : T.direct_cost_alert;
+      const be = weeks.map(x => x.breakeven_per_day ? x.breakeven_per_day * 7 : T.breakeven_week);
+      Charts.bars($("#run-weeks"), { labels: weeks.map(x => x.week.slice(5)), values: weeks.map(x => x.net_sales), name: t("net sales"),
+        line: be.every(v => v != null) ? { name: t("break-even for the week"), values: be } : null, yfmt: money, height: 240 });
+      Charts.bars($("#run-cost"), { labels: weeks.map(x => x.week.slice(5)), values: weeks.map(x => x.direct_cost_pct), name: t("direct cost (estimate)"),
+        line: thr != null ? { name: t("alert threshold"), values: weeks.map(() => thr) } : null, yfmt: v => pct(v), height: 240 });
+      const dbe = w.breakeven_per_day || T.breakeven_day;
+      Charts.bars($("#run-days"), { labels: (w.daily || []).map(x => x.day || x.date.slice(5)), values: (w.daily || []).map(x => x.net_sales), name: t("net sales"),
+        line: dbe ? { name: t("break-even a day"), values: (w.daily || []).map(() => dbe) } : null, yfmt: money, height: 220 });
+    }
+    if (cf && cf.weeks) Charts.bars($("#run-cash"), { labels: cf.weeks.map(x => "W" + x.label), values: cf.weeks.map(x => x.end_balance), name: t("end-of-week balance"),
+      line: { name: t("cash in"), values: cf.weeks.map(x => x.cash_in) }, yfmt: money, height: 240 });
+  };
+
   // ── docs ─────────────────────────────────────────────────────────────────────
   VIEWS.docs = async el => {
     const docs = S.st.docs;
@@ -468,8 +600,8 @@
     const cur = S.sub ? decodeURIComponent(S.sub) : (docs.find(d => d.path === "business-plan.md") || docs.find(d => d.path.endsWith(".md")) || docs[0]).path;
     const groups = {};
     docs.forEach(d => { const g = d.step || "other"; (groups[g] = groups[g] || []).push(d); });
-    const order = ["board", "competitors", "consumer", "pricing", "offer", "cfo", "marketing", "brand", "ops", "launch", "plan", "other"];
-    let list = order.filter(g => groups[g]).map(g => '<div class="grp">' + esc(g === "other" ? t(g) : stepName(g)) + "</div>" + groups[g].map(d =>
+    const order = ["board", "competitors", "consumer", "pricing", "offer", "cfo", "marketing", "brand", "ops", "launch", "plan", "reports", "other"];
+    let list = order.filter(g => groups[g]).map(g => '<div class="grp">' + esc(g === "other" ? t(g) : g === "reports" ? t("Reports, after opening") : stepName(g)) + "</div>" + groups[g].map(d =>
       '<a href="#/p/' + S.pid + "/docs/" + encodeURIComponent(d.path) + (S.query.round ? "?round=" + encodeURIComponent(S.query.round) : "") + '" class="' + (d.path === cur ? "on" : "") + '"><span>' + esc(d.path) + "</span><small>" + esc(ago(d.mtime)) + "</small></a>").join("")).join("");
     el.innerHTML = '<div class="docs"><nav class="doclist">' + list + '</nav><div class="card" id="docview">…</div></div>';
     const meta = docs.find(d => d.path === cur) || {};

@@ -117,6 +117,53 @@ class ProjectReads(unittest.TestCase):
         with self.assertRaises(NotFound):
             self.p.brief("../x")
 
+    def test_profile_card_and_competitor_columns(self):
+        st = self.p.state()
+        sections = [x["section"] for x in st["profile"]]
+        self.assertIn("From the plan", sections)
+        rows = dict(st["profile"][0]["rows"])
+        self.assertIn("95 cups", rows["Break-even per day"])
+        comp = self.p.competitors()["rows"]
+        self.assertEqual(comp[0]["price_channel"], "counter")
+        self.assertIn("informal", {r["type"] for r in comp})
+
+    def test_cfo_months_carry_cash_and_one_offs(self):
+        a = self.p.cfo()["analysis"]
+        feb = a["months"][1]
+        self.assertEqual(feb["label"], "Feb 2027")
+        self.assertEqual(feb["one_off"], 2864938)
+        self.assertEqual(feb["cash"] - feb["profit"], 8000000)  # rent prepaid: profit counts it, cash does not
+        self.assertEqual(a["one_off"][0][0], 2)
+
+    def test_run_stage_reports(self):
+        r = self.p.run()
+        self.assertTrue(r["any"])
+        counts = {k["kind"]: k["count"] for k in r["kinds"]}
+        self.assertEqual(counts, {"weekly": 6, "pnl": 2, "cashflow": 1, "cost-leak": 1, "product-mix": 1, "staffing": 1})
+        self.assertEqual(sum(k["problems"] for k in r["kinds"]), 0)  # the demo passes its own checks
+        self.assertEqual(r["reports"]["weekly"][0]["week"], "2027-W19")  # newest first
+        self.assertEqual(round(r["targets"]["breakeven_week"]), 14494331)
+        self.assertEqual([w["status"] for w in r["reports"]["cashflow"][0]["weeks"]], ["safe", "safe", "watch", "at risk"])
+        st = self.p.state()
+        self.assertIn("1 week(s) at risk", st["run_summary"])
+        self.assertIn("reports", {d["step"] for d in st["docs"]})
+        json.dumps(r, allow_nan=False)
+
+    def test_build_only_demo_has_no_run_stage(self):
+        d = tempfile.mkdtemp(prefix="fgui-")
+        try:
+            with open(os.devnull, "w") as null:
+                old, sys.stdout = sys.stdout, null
+                try:
+                    demo.main([d, "--no-run"])
+                finally:
+                    sys.stdout = old
+            p = Project(d)
+            self.assertFalse(p.run()["any"])
+            self.assertIsNone(p.state()["run_summary"])
+        finally:
+            shutil.rmtree(d, ignore_errors=True)
+
     def test_board_memos(self):
         b = self.p.board()
         self.assertEqual(sorted(m["lens"] for m in b["memos"]), ["local-market", "monopoly", "offers", "product"])
@@ -183,7 +230,7 @@ class Http(unittest.TestCase):
     def test_ping_and_views(self):
         code, body = self.call("/api/ping")
         self.assertEqual((code, json.loads(body)["app"]), (200, "founder-id-gui"))
-        for view in ("state", "board", "competitors", "panel", "pricing", "cfo", "offer", "rounds"):
+        for view in ("state", "board", "competitors", "panel", "pricing", "cfo", "offer", "run", "rounds"):
             code, body = self.call("/api/p/%s/%s" % (self.pid, view))
             self.assertEqual(code, 200, view)
         code, body = self.call("/")
@@ -219,6 +266,7 @@ class Http(unittest.TestCase):
         self.assertNotIn('src="/static/', html)
         self.assertNotIn('href="/static/', html)
         self.assertIn("Rp10.430", html)  # the CFO report travels inside the snapshot
+        self.assertIn("2027-W19", html)  # and the run-stage reports
 
 
 if __name__ == "__main__":

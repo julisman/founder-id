@@ -21,14 +21,15 @@ From Claude Code, with the plugin installed: `/founder-id:founder-gui`.
 
 | view | what is on it |
 | --- | --- |
-| Pipeline | the eleven build steps with their status (not started, partial, done, re-run, running), the computed verdict and its checks, the board's conditions as a checklist, the next step and its command |
+| Pipeline | the eleven build steps with their status (not started, partial, done, re-run, running), the computed verdict and its checks, the board's conditions as a checklist, the business profile from `profile.md`, a one-line summary of what was saved after opening, the next step and its command |
 | Board | the four memos side by side (Offers, Monopoly, Product, Local market): score, vote, risks, conditions |
-| Competitors | the table from `competitors.csv` and price against rating |
-| Panel | the buyers as tiles that fill in as answers arrive; filter by segment, behaviour, answer; open a buyer for the persona, the answer and the brief it got; buy rate by segment, behaviour and income; why they pass, why they buy, what would flip a no |
+| Competitors | the table from `competitors.csv` (with the channel each price was seen on and the trust signals) and price against rating |
+| Panel | the buyers as tiles that fill in as answers arrive; filter by segment, behaviour, answer; open a buyer for the persona, the answer and the brief it got; buy rate by segment, behaviour, income and region; why they pass, why they buy, what would flip a no |
 | Pricing | the Van Westendorp curves in Rupiah with the acceptable range, your price, competitor prices and the unit cost |
 | Offer | the pitch before and after, word by word |
-| CFO | the key numbers, year 1 month by month (with the month names from `start`), the three what-ifs, and a what-if simulator (price, volume, unit costs, commissions and fees, fixed and startup costs) that runs `unit_economics.py` on a copy |
-| Docs | every file in `founder/`, rendered, including `profile.md` for the run skills |
+| CFO | the key numbers, year 1 month by month (profit and cash side by side, the season multiplier, THR and other one-off costs), the three what-ifs, and a what-if simulator (price, volume, unit costs, commissions and fees, fixed and startup costs) that runs `unit_economics.py` on a copy |
+| After opening | the run skills' saved reports as trends: net sales by week against break-even, direct cost by week against its alert, last week day by day, channels, every alert and action, the 4-week cash forecast with the weeks at risk, the P&L month by month, the latest cost leak, product mix and staffing heatmap |
+| Docs | every file in `founder/`, rendered, including `profile.md` and the saved reports |
 | Rounds | dated copies of `founder/`, compared side by side |
 
 ## How it works
@@ -47,9 +48,16 @@ From Claude Code, with the plugin installed: `/founder-id:founder-gui`.
   (`~/.founder-id-gui/hub.json` says where it is); later ones, from other folders,
   only add their folder to it. The sidebar lists them all.
 
-It never starts a Claude session and never changes the skills' files. The run
-skills (weekly report, P&L, cash flow and the rest) answer in the chat, so they
-do not appear here.
+It never starts a Claude session and never changes the skills' files.
+
+## After opening
+
+The run skills answer in the chat and also save each report in
+`founder/reports/<kind>/` as a `.md` (the report as shown) and a `.json` (its key
+numbers). `skills/founder-weekly-report/reports.py` says where each one goes and
+checks its arithmetic (daily sales add up to the week, cash balances chain week to
+week, net profit follows from the lines). A report that does not add up shows with
+a warning instead of being drawn as if it were right.
 
 ## Files
 
@@ -68,8 +76,8 @@ another site cannot send without a CORS preflight, which the hub never answers.
 python3 -m unittest discover -s tests -v
 ```
 
-`tests/test_gui.py` builds the demo project, checks every view against the
-example numbers (Rp10.430 a cup, break-even 95 a day, Rp146.332.535 in year 1),
+`tests/test_gui.py` builds the demo project (build stage plus six weeks of
+reports after opening), checks every view against the example numbers (Rp10.430 a cup, break-even 95 a day, Rp146.332.535 in year 1),
 checks the what-if leaves `numbers.json` alone, compares rounds, checks the
 security guards and the export, and checks that no run or feedback endpoint
 exists.

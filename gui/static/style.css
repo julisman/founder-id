@@ -284,3 +284,7 @@ mark.del { background: var(--bad-soft); color: var(--bad); text-decoration: line
   .g3, .g4 { grid-template-columns: 1fr 1fr; }
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* founder-id: Rupiah amounts never break mid-number */
+.t td.r, .md td { white-space: nowrap; }
+.md table { display: block; overflow-x: auto; }

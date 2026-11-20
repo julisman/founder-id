@@ -16,7 +16,9 @@ It joins two packs:
   a 4-week cash forecast, a cost-leak check, product-mix analysis and staffing
   against busy hours.
 
-The Indonesia desk links them: tax (PPh Final UMKM, PPN, PBJT), permits (OSS and
+Every run skill saves its report in `founder/reports/`, so next week's report
+starts from last week's and the dashboard can draw the trends. The Indonesia desk
+links them: tax (PPh Final UMKM, PPN, PBJT), permits (OSS and
 the NIB, KBLI, PIRT, BPOM, halal), payroll (UMK, BPJS, THR), payments and channels
 (QRIS, e-wallets, COD, delivery apps, marketplaces) and the calendar (Ramadan,
 Lebaran, mudik, payday, 11.11 and 12.12).
@@ -123,13 +125,14 @@ the tools on it.)
 
 ## The tools
 
-Four of them, all standard-library Python. None touch the network.
+Five of them, all standard-library Python. None touch the network.
 
 ```bash
 python3 skills/founder-cfo/unit_economics.py founder/numbers.json --out founder/cfo.md   # margins, break-even, year 1
 python3 skills/founder-consumer/panel.py init --customer founder/customer.json --pitch founder/pitch.md
 python3 skills/founder-pricing/van_westendorp.py founder/panel/answers --price 22000     # the acceptable price range
 python3 skills/founder-plan/compile.py --dir founder                                     # the plan, its verdict, the profile
+python3 skills/founder-weekly-report/reports.py check founder/reports/weekly/2027-W05.json # a saved run report adds up
 ```
 
 **`unit_economics.py`** reads one JSON (example: `skills/founder-cfo/example.json`).
@@ -149,6 +152,10 @@ thousand) and finds the acceptable range.
 
 **`compile.py`** assembles the plan, computes the verdict and writes the profile.
 
+**`reports.py`** tells the run skills where to save each report and checks the
+arithmetic in it: daily sales add up to the week, cash balances chain week to week,
+net profit follows from its lines.
+
 ```bash
 python3 -m unittest discover -s tests -v
 ```
@@ -158,7 +165,10 @@ python3 -m unittest discover -s tests -v
 A local, read-only web page to read the results while the skills run: the
 pipeline and the verdict, the four board memos, the buyer panel as tiles, the
 price curves, the CFO's year in Rupiah with a what-if simulator, every document,
-and rounds to compare two versions. Export it as one offline HTML file to send to
+and rounds to compare two versions. After opening, it turns the run skills' saved
+reports into trends: weekly sales against break-even, direct cost, the 4-week cash
+forecast with the weeks at risk, the P&L month by month, cost leaks, product mix
+and a staffing heatmap. Export it as one offline HTML file to send to
 a partner or a bank.
 
 ```
@@ -216,7 +226,8 @@ skills/founder-brand/        SKILL.md
 skills/founder-ops/          SKILL.md
 skills/founder-launch/       SKILL.md
 skills/founder-plan/         SKILL.md, compile.py
-skills/founder-weekly-report/ skills/founder-pnl/ skills/founder-cashflow/
+skills/founder-weekly-report/ SKILL.md, reports.py (shared by every run skill)
+skills/founder-pnl/          skills/founder-cashflow/
 skills/founder-cost-leak/    skills/founder-product-mix/ skills/founder-staffing/
 gui/                         the dashboard (serve.py, demo.py, founder_gui/, static/)
 commands/founder-gui.md      the /founder-id:founder-gui command

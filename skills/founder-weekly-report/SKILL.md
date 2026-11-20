@@ -30,7 +30,7 @@ skill; it does not run a long analysis itself.
 | source | required columns | notes |
 | --- | --- | --- |
 | Last week's sales | date, channel, gross sales, discounts, platform commission and fees, net sales, transactions (orders) | 7 days; one export per channel is fine (POS, GoFood/GrabFood/ShopeeFood, Shopee, Tokopedia/TikTok Shop, WhatsApp/transfer, invoices) |
-| The week before | the same | for the comparison; reuse it if already in this conversation |
+| The week before | the same | for the comparison: use `founder/reports/weekly/<last week>.json` if it was saved, otherwise the export, or what is already in this conversation |
 | Last week's purchases | date, item, total | for the weekly direct-cost estimate (no stock count, so an estimate) |
 | Cash on Monday morning | one number | optional, for the cash alert |
 | Business profile | `founder/profile.md`: direct-cost alert, weekly target, break-even per day, nearest supplier and payroll dates | written by `/founder-plan`; if missing, ask for the three thresholds or use the defaults below |
@@ -85,7 +85,8 @@ break-even.
 - Alerts only when the threshold is really crossed. Do not add alerts to make
   the report look complete.
 - Do not repeat last week's findings if nothing changed. If last week's action is
-  recorded in the conversation, start with its result.
+  recorded (in the conversation, or as `action` in last week's saved JSON), start
+  with its result.
 
 ## Output format (fixed)
 
@@ -122,6 +123,34 @@ Source: sales export [file name], xx rows, [dd-dd]; purchases [file name], xx ro
 ```
 
 Write the team version in the language the team uses (usually Indonesian).
+
+## Save the report
+
+After showing the report, save it so next time (and the founder-id dashboard) can
+use it. Two files in `founder/reports/weekly/`, named by the ISO week:
+
+- `2027-W05.md`: the report exactly as shown above.
+- `2027-W05.json`: its key numbers, in this shape (money in full Rupiah as plain
+  numbers, percentages as fractions: 0.45 means 45%):
+
+```json
+{
+  "week": "2027-W05", "start": "2027-02-01", "end": "2027-02-07",
+  "net_sales": 18450000, "prev_net_sales": 17200000, "transactions": 760, "avg_ticket": 24276,
+  "breakeven_per_day": 2070619, "days_below_breakeven": 2,
+  "purchases": 8300000, "direct_cost_pct": 0.45, "direct_cost_threshold": 0.49,
+  "channels": {"walk-in": 11070000, "GoFood/GrabFood": 7380000},
+  "daily": [{"date": "2027-02-01", "day": "Mon", "net_sales": 2900000}, "... one per day"],
+  "alerts": [{"text": "Direct cost 52% (estimate), above 49% two weeks running", "skill": "founder-cost-leak"}],
+  "last_action": "what was decided last week", "action": "the one action this week",
+  "not_recorded": ["2027-02-04: no POS export"]
+}
+```
+
+Get the paths with `python3 "${CLAUDE_SKILL_DIR}/reports.py"` `path weekly 2027-W05`, write both files, then run
+`python3 "${CLAUDE_SKILL_DIR}/reports.py"` `check founder/reports/weekly/2027-W05.json`. It checks that the daily rows and the channels add up to net_sales; avg_ticket = net_sales / transactions.
+If it reports a problem, fix the numbers (never the check) and say what changed.
+Copy numbers from the report; do not compute new ones for the JSON.
 
 ## Thresholds the owner can change (in founder/profile.md)
 

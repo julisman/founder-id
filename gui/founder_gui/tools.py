@@ -34,6 +34,10 @@ def pricing():
     return load("founder-pricing", "van_westendorp")
 
 
+def reports():
+    return load("founder-weekly-report", "reports")
+
+
 def compile_plan():
     return load("founder-plan", "compile")
 

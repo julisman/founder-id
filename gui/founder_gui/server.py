@@ -214,7 +214,7 @@ def _file(app, q, body, pid):
     return {"path": rel, "text": text, "mtime": os.path.getmtime(p.path(rel))}
 
 
-for _view in ("board", "competitors", "panel", "pricing", "cfo", "offer"):
+for _view in ("board", "competitors", "panel", "pricing", "cfo", "offer", "run"):
     def _make(view):
         def fn(app, q, body, pid):
             return getattr(app.project(pid, q), view)()

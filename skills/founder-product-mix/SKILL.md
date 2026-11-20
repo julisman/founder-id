@@ -123,6 +123,32 @@ Margin lost Rp xxx.xxx/month | Stock no longer needed: [...]
 Source: [export file, rows, period]
 ```
 
+## Save the report
+
+After showing the report, save it so next time (and the founder-id dashboard) can
+use it. Two files in `founder/reports/product-mix/`, named by the month or period:
+
+- `2027-01.md`: the report exactly as shown above.
+- `2027-01.json`: its key numbers, in this shape (money in full Rupiah as plain
+  numbers, percentages as fractions: 0.45 means 45%):
+
+```json
+{
+  "period": "2027-01",
+  "items": [
+    {"item": "Es kopi susu gula aren", "category": "drinks", "qty": 3100, "avg_price": 22000,
+     "unit_cost": 9700, "channel_fee": 1760, "margin_unit": 10540, "total_margin": 32674000,
+     "quadrant": "star", "new_price": null},
+    "... every item analysed"
+  ]
+}
+```
+
+Get the paths with `python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `path product-mix 2027-01`, write both files, then run
+`python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `check founder/reports/product-mix/2027-01.json`. It checks that total_margin = qty x margin_unit, quadrant is star, plowhorse, puzzle, dog or new.
+If it reports a problem, fix the numbers (never the check) and say what changed.
+Copy numbers from the report; do not compute new ones for the JSON.
+
 ## Thresholds the owner can change (in founder/profile.md)
 
 - Volume line multiplier (default 0.7)

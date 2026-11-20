@@ -125,6 +125,32 @@ PURCHASE PRICES THAT ROSE
 Source: [tabs and rows]
 ```
 
+## Save the report
+
+After showing the report, save it so next time (and the founder-id dashboard) can
+use it. Two files in `founder/reports/cost-leak/`, named by the month or period:
+
+- `2027-01.md`: the report exactly as shown above.
+- `2027-01.json`: its key numbers, in this shape (money in full Rupiah as plain
+  numbers, percentages as fractions: 0.45 means 45%):
+
+```json
+{
+  "month": "2027-01", "coverage_pct": 0.94, "direct_cost_pct": 0.478,
+  "items": [
+    {"item": "Fresh milk", "unit": "L", "expected": 2160, "actual": 2490, "gap_qty": 330, "gap_pct": 0.153,
+     "gap_rp": 4950000, "waste_recorded": 0, "cause": "Non-standard portions"},
+    "... the top 5, biggest gap_rp first"
+  ],
+  "price_rises": [{"item": "Fresh milk", "from": 14000, "to": 15500, "pct": 0.107}]
+}
+```
+
+Get the paths with `python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `path cost-leak 2027-01`, write both files, then run
+`python3 "${CLAUDE_SKILL_DIR}/../founder-weekly-report/reports.py"` `check founder/reports/cost-leak/2027-01.json`. It checks that gap_qty = actual - expected, items sorted by gap_rp.
+If it reports a problem, fix the numbers (never the check) and say what changed.
+Copy numbers from the report; do not compute new ones for the JSON.
+
 ## Thresholds the owner can change (in founder/profile.md)
 
 - Normal gap % (default 10% fresh, 2% packaged)

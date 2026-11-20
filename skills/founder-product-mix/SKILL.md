@@ -39,6 +39,12 @@ shop, the product categories with different margins (accessories vs the main
 product). Drinks and accessories almost always carry high margins, so they are
 analysed in their own group, otherwise everything else looks bad.
 
+
+`founder/profile.md` is written by `/founder-plan`. A business that skipped the
+build stage often has its own outlet profile instead (an owner's notes, a course
+`profil-outlet.md`): use it the same way, and say which file the thresholds came
+from. Where both exist and disagree, the owner's own file wins.
+
 ## Steps
 
 Per category:
@@ -62,19 +68,31 @@ Per category:
 | C | below the line | at or above the line | **Puzzle** | promote it, move it up the menu or the store page, bundle it with a Star |
 | D | below the line | below the line | **Dog** | drop it, or redo it completely; do not promote it |
 
-7. **New prices** for quadrant B: the price that brings the margin % to the
-   category's margin line, rounded the way buyers read prices (Rp500 steps under
-   Rp20.000, Rp1.000 above; for retail and online, endings like Rp49.900 or
-   Rp99.000 if the store already uses them), capped at a 10% rise per round. Show
-   the Rupiah rise per unit and the effect per month = rise x quantity sold x 0.9
-   (assuming 10% fewer buyers; the owner can change it). If an item is sold on a
-   delivery app or marketplace, check the platform's rules on price differences.
-8. **Effect of dropping quadrant D**: the total margin lost per month (usually
+7. **New prices** for quadrant B. The target is in Rupiah, not percent: the price
+   at which the item's **margin per unit reaches the category's margin line**
+   (step 5), with the channel fee recalculated at the new price. Then:
+   - cap it at a 10% rise per round, and round **down** the way buyers read prices
+     (Rp500 steps under Rp20.000, Rp1.000 above; for retail and online, endings like
+     Rp49.900 or Rp99.000 if the store already uses them), so rounding never breaks
+     the cap;
+   - say how far the target is if the cap stops short (for example "reaching the
+     line needs Rp30.900, +29%: this round stops at Rp26.000");
+   - **effect per month** = new margin per unit x quantity x 0.9 - old margin per
+     unit x quantity (assuming 10% fewer buyers; the owner can change it). This
+     counts the margin lost on the buyers who leave; never report rise x quantity
+     x 0.9 as extra profit.
+   If an item is sold on a delivery app or marketplace, check the platform's rules
+   on price differences.
+8. **Effect of dropping quadrant D**: the total margin lost per month, after channel fees (usually
    small) against the materials or stock that no longer need to be held (name
    items used only by D products).
 
 ## Verification rules (required)
 
+- Say once that margins here are after the channel's commission and fees. A
+  benchmark or answer key that uses price minus unit cost only will show higher
+  margins and a higher margin line; the quadrants usually stay the same. If the
+  owner asks for the before-fee view, give it as a second table, never mixed.
 - The total sales in your table must equal the export's total. If not, state the
   difference and likely causes (items with no category, voids, modifiers or
   add-ons, bundles).

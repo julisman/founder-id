@@ -46,6 +46,12 @@ the owner insists, use common quantities and label every affected number
 Units must match. If purchases are in kg and recipes in grams, convert first and
 write the conversion.
 
+
+`founder/profile.md` is written by `/founder-plan`. A business that skipped the
+build stage often has its own outlet profile instead (an owner's notes, a course
+`profil-outlet.md`): use it the same way, and say which file the thresholds came
+from. Where both exist and disagree, the owner's own file wins.
+
 ## Steps
 
 For each item in the usage table:

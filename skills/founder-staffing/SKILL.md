@@ -35,6 +35,12 @@ argument-hint: "[weeks of data, default 4]"
 If the roster is not written down, ask the owner to type last week's roster from
 memory and label it **(roster from memory)**.
 
+
+`founder/profile.md` is written by `/founder-plan`. A business that skipped the
+build stage often has its own outlet profile instead (an owner's notes, a course
+`profil-outlet.md`): use it the same way, and say which file the thresholds came
+from. Where both exist and disagree, the owner's own file wins.
+
 ## Steps
 
 1. Group the workload by **weekday x hour** (Monday 10.00, Monday 11.00, and so

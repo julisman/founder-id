@@ -43,6 +43,12 @@ If supplier due dates are not recorded, ask the owner for **the 3 biggest
 suppliers and how they are paid** (cash, 7, 14, 30 days, consignment). Do not
 assume everything is cash.
 
+
+`founder/profile.md` is written by `/founder-plan`. A business that skipped the
+build stage often has its own outlet profile instead (an owner's notes, a course
+`profil-outlet.md`): use it the same way, and say which file the thresholds came
+from. Where both exist and disagree, the owner's own file wins.
+
 ## Steps
 
 1. **Sales pattern**: the average net sales per weekday (Monday to Sunday) over
@@ -65,7 +71,12 @@ assume everything is cash.
    negative on Tuesday.
 7. **Pessimistic case**: repeat steps 3 to 6 with sales 15% lower (adjustable).
    Weeks negative only in the pessimistic case are "watch"; weeks negative in the
-   normal case are "at risk".
+   normal case are "at risk". "Negative" includes the lowest balance inside the
+   week (step 6), not only the end balance.
+   Separately, name every week whose end or lowest balance is below the **minimum
+   safe balance** from the profile (default one week of operating costs), even if
+   it stays positive: "week 2 ends at Rp3.071.000, under the Rp4.000.000 safe
+   minimum".
 8. **Two options** for each week at risk, from: move a supplier due date (name the
    supplier and amount), delay a big purchase, withdraw platform balances early,
    collect receivables, a promotion the week before to pull cash in, split THR
@@ -99,6 +110,7 @@ Cash today Rp xxx.xxx.xxx ([source]) | Pattern from 8 weeks, trend xx% | Payouts
 | 4 | |
 
 Pessimistic case (sales -15%): week 4 end balance Rp xxx.xxx.xxx, negative weeks: [..]
+Below the safe minimum of Rp x.xxx.xxx: weeks [..]
 
 WEEKS AT RISK
 Week x (dd-dd): negative Rp xxx.xxx on [day] because [which payment].

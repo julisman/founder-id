@@ -46,6 +46,12 @@ If a column is missing, **ask first**, do not invent. If the owner does not have
 it (for example closing stock), go ahead with an estimate and label every number
 it touches **(estimate)**.
 
+
+`founder/profile.md` is written by `/founder-plan`. A business that skipped the
+build stage often has its own outlet profile instead (an owner's notes, a course
+`profil-outlet.md`): use it the same way, and say which file the thresholds came
+from. Where both exist and disagree, the owner's own file wins.
+
 ## Steps
 
 All in full Rupiah, no rounding until the last step.

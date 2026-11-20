@@ -42,6 +42,12 @@ subcontractors for services. Use the business's own word in the report.
 If last week's purchases are missing, write the report without the direct-cost
 line and say so under "Not recorded".
 
+
+`founder/profile.md` is written by `/founder-plan`. A business that skipped the
+build stage often has its own outlet profile instead (an owner's notes, a course
+`profil-outlet.md`): use it the same way, and say which file the thresholds came
+from. Where both exist and disagree, the owner's own file wins.
+
 ## Steps
 
 1. **Net sales last week**, per day and in total, per channel. Net sales = gross

@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   const SNAP = window.__FOUNDER_SNAPSHOT__ || null;
+  let STOPPED = false;  // after the stop button: no reconnecting
   const esc = MD.esc, t = I18N.t;
   const $ = (s, el) => (el || document).querySelector(s);
   const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
@@ -736,7 +737,7 @@
   }
   function connect() {
     if (SNAP || !window.EventSource) return;
-    const es = new EventSource("/api/events");
+    const es = connect.es = new EventSource("/api/events");
     let opened = false;
     es.onopen = () => { if (opened) { loadProjects(); if (S.pid) scheduleRefresh(); } opened = true; };  // resync after the hub restarts
     es.onmessage = m => {
@@ -768,6 +769,16 @@
     catch (err) { toast(err.message); }
   };
   if (SNAP) $("#add-project").hidden = true;
+  const stopBtn = $("#stop-hub");
+  if (SNAP) stopBtn.hidden = true;
+  else stopBtn.onclick = async () => {
+    if (!stopBtn.dataset.armed) { stopBtn.dataset.armed = "1"; stopBtn.textContent = t("click again to stop"); setTimeout(() => { stopBtn.dataset.armed = ""; stopBtn.textContent = "■ " + t("stop"); }, 4000); return; }
+    try { await api("/api/shutdown", { method: "POST" }); } catch (e) { toast(e.message); return; }
+    STOPPED = true;
+    if (connect.es) connect.es.close();
+    document.getElementById("main").innerHTML = '<div class="empty-state"><h1>' + esc(t("Dashboard stopped")) + "</h1><p>" +
+      esc(t("The server is off and your founder/ files are untouched. Start it again with /founder-id:founder-gui, then reload this page.")) + "</p></div>";
+  };
 
   I18N.set("en");
   applyLang(); applyTheme();

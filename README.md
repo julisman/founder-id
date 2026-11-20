@@ -172,7 +172,7 @@ and a staffing heatmap. Export it as one offline HTML file to send to
 a partner or a bank.
 
 ```
-/founder-id:founder-gui                                  # from Claude Code
+/founder-id:founder-gui                                  # from Claude Code; /founder-id:founder-gui-stop stops it
 python3 gui/serve.py --dir path/to/project               # or from a terminal
 python3 gui/demo.py /tmp/kopi-senja-demo                 # a demo project to try it
 ```
@@ -230,7 +230,7 @@ skills/founder-weekly-report/ SKILL.md, reports.py (shared by every run skill)
 skills/founder-pnl/          skills/founder-cashflow/
 skills/founder-cost-leak/    skills/founder-product-mix/ skills/founder-staffing/
 gui/                         the dashboard (serve.py, demo.py, founder_gui/, static/)
-commands/founder-gui.md      the /founder-id:founder-gui command
+commands/                    /founder-id:founder-gui and /founder-id:founder-gui-stop
 tests/                       the tests for every tool, the dashboard and the repo
 ```
 

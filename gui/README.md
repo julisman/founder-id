@@ -15,7 +15,14 @@ python3 gui/demo.py /tmp/kopi-senja-demo              # a demo project from the 
 python3 gui/serve.py --dir /tmp/kopi-senja-demo
 ```
 
-From Claude Code, with the plugin installed: `/founder-id:founder-gui`.
+From Claude Code, with the plugin installed: `/founder-id:founder-gui` to start
+it, `/founder-id:founder-gui-stop` to stop it. Or press **■ stop** at the bottom of
+the sidebar (twice, so it is not hit by accident), or from a terminal:
+
+```bash
+python3 gui/serve.py --status    # is it running, and where
+python3 gui/serve.py --stop      # stop it; your founder/ files and the project list stay
+```
 
 ## What it shows
 

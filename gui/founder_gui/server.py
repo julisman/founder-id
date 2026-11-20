@@ -12,6 +12,7 @@ import mimetypes
 import os
 import queue
 import re
+import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlparse
@@ -28,6 +29,12 @@ class App:
     def __init__(self):
         self.bus = Bus()
         self.watcher = Watcher(self.bus)
+        self.httpd = None
+
+    def stop(self):
+        time.sleep(0.2)  # let the reply reach the browser first
+        self.watcher.stop()
+        self.httpd.shutdown()
 
     def project(self, pid, query=None):
         p = registry.get(pid)
@@ -176,6 +183,15 @@ def _ping(app, q, body):
     return {"app": "founder-id-gui", "version": VERSION, "pid": os.getpid()}
 
 
+@route("POST", r"/api/shutdown")
+def _shutdown(app, q, body):
+    """Stop the hub. Same guards as every write: localhost Host header and the X-Founder-GUI header."""
+    if app.httpd is None:
+        raise ValueError("this hub cannot stop itself")
+    threading.Thread(target=app.stop, daemon=True).start()
+    return {"ok": True, "pid": os.getpid()}
+
+
 @route("GET", r"/api/projects")
 def _projects(app, q, body):
     return [app.summary(p) for p in registry.projects()]
@@ -271,5 +287,6 @@ def serve(port=8766, host="127.0.0.1"):
     app = App()
     httpd = ThreadingHTTPServer((host, port), make_handler(app))
     httpd.daemon_threads = True
+    app.httpd = httpd
     app.watcher.start()
     return app, httpd

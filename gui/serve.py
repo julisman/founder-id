@@ -5,6 +5,8 @@
     python3 gui/serve.py --dir path/to/project
     python3 gui/serve.py --detach             # start the hub in the background and return
     python3 gui/serve.py --list               # the projects the hub knows
+    python3 gui/serve.py --status             # is the hub running, and where
+    python3 gui/serve.py --stop               # stop the hub (the projects stay registered)
 
 One hub serves every project on this machine. If it is already running (from
 another folder or another Claude session), this only registers the folder with
@@ -14,6 +16,7 @@ it and opens the page. Standard library only; the server listens on 127.0.0.1.
 import argparse
 import json
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -63,7 +66,40 @@ def main(argv=None):
     ap.add_argument("--no-open", action="store_true", help="do not open the browser")
     ap.add_argument("--detach", action="store_true", help="run the hub in the background")
     ap.add_argument("--list", action="store_true", help="list registered projects and exit")
+    ap.add_argument("--status", action="store_true", help="say whether the hub is running")
+    ap.add_argument("--stop", action="store_true", help="stop the running hub")
     a = ap.parse_args(argv)
+
+    if a.status:
+        port = running_hub()
+        if port:
+            print("Founder GUI is running: http://127.0.0.1:%d (pid %s)" % (port, registry.read_hub().get("pid")))
+        else:
+            print("Founder GUI is not running")
+        return 0
+
+    if a.stop:
+        port = running_hub()
+        if not port:
+            registry.clear_hub((registry.read_hub() or {}).get("pid"))  # a stale hub.json from a crash
+            print("Founder GUI is not running")
+            return 0
+        pid = _call(port, "GET", "/api/ping").get("pid")
+        try:
+            _call(port, "POST", "/api/shutdown")
+        except Exception:
+            # a hub from an older version has no shutdown endpoint: it answered ping as
+            # founder-id-gui with this pid, so end that process the ordinary way
+            if pid and pid == (registry.read_hub() or {}).get("pid"):
+                os.kill(pid, signal.SIGTERM)
+                registry.clear_hub(pid)
+        for _ in range(30):
+            time.sleep(0.1)
+            if not running_hub():
+                print("Founder GUI stopped (was http://127.0.0.1:%d, pid %s). Your founder/ files are untouched." % (port, pid))
+                return 0
+        print("asked the hub to stop, but it is still answering on port %d (pid %s)" % (port, pid), file=sys.stderr)
+        return 1
 
     if a.list:
         for p in registry.projects():

@@ -211,6 +211,36 @@ class Rounds(unittest.TestCase):
             shutil.rmtree(d, ignore_errors=True)
 
 
+class Stop(unittest.TestCase):
+    def test_shutdown_needs_the_header_then_stops_the_hub(self):
+        home = tempfile.mkdtemp(prefix="fgui-home-")
+        os.environ["FOUNDER_GUI_HOME"] = home
+        try:
+            app, httpd = server.serve(0)
+            port = httpd.server_address[1]
+            t = threading.Thread(target=httpd.serve_forever, daemon=True)
+            t.start()
+
+            def post(headers):
+                req = urllib.request.Request("http://127.0.0.1:%d/api/shutdown" % port, method="POST", data=b"{}",
+                                             headers=dict({"Content-Type": "application/json"}, **headers))
+                try:
+                    with urllib.request.urlopen(req, timeout=5) as r:
+                        return r.status
+                except urllib.error.HTTPError as e:
+                    with e:
+                        return e.code
+            self.assertEqual(post({}), 403)  # a page on another site cannot stop it
+            self.assertTrue(t.is_alive())
+            self.assertEqual(post({server.HEADER: "1"}), 200)
+            t.join(5)
+            self.assertFalse(t.is_alive())
+            httpd.server_close()
+        finally:
+            os.environ.pop("FOUNDER_GUI_HOME", None)
+            shutil.rmtree(home, ignore_errors=True)
+
+
 class Http(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

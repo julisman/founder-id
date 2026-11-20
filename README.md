@@ -66,14 +66,14 @@ The tools need Python 3.8 or newer. Nothing to pip install.
 
 **Run: after you open**
 
-| command | was | what it does |
+| command | job | what it does |
 | --- | --- | --- |
-| `/founder-weekly-report` | `agj-laporan-senin` | The Monday report: last week against the week before, alerts only when a threshold is crossed, one action, a team version. |
-| `/founder-pnl` | `agj-pnl-bahasa-owner` | The month's P&L in the owner's words, commissions and tax on their own lines, prive taken out. |
-| `/founder-cashflow` | `agj-cashflow-4-minggu` | Cash week by week for 4 weeks with each channel's payout delay, supplier terms, payroll, THR, BPJS and tax; flags the weeks at risk. |
-| `/founder-cost-leak` | `agj-deteksi-bocor-food-cost` | What was bought against what sales explain (recipes, bills of materials, or unit stock): the five biggest gaps in Rupiah and how to check them. |
-| `/founder-product-mix` | `agj-menu-engineering` | Stars, Plowhorses, Puzzles, Dogs by margin after channel fees and volume; new prices capped at 10% a round. |
-| `/founder-staffing` | `agj-jadwal-vs-jam-ramai` | Workload per hour against the roster: overstaffed and understaffed slots, a new roster within the working-time rules, the saving. |
+| `/founder-weekly-report` | Weekly Reporter | The Monday report: last week against the week before, alerts only when a threshold is crossed, one action, a team version. |
+| `/founder-pnl` | Bookkeeper | The month's P&L in the owner's words, commissions and tax on their own lines, prive taken out. |
+| `/founder-cashflow` | Cash Manager | Cash week by week for 4 weeks with each channel's payout delay, supplier terms, payroll, THR, BPJS and tax; flags the weeks at risk. |
+| `/founder-cost-leak` | Cost Controller | What was bought against what sales explain (recipes, bills of materials, or unit stock): the five biggest gaps in Rupiah and how to check them. |
+| `/founder-product-mix` | Product Manager | Stars, Plowhorses, Puzzles, Dogs by margin after channel fees and volume; new prices capped at 10% a round. |
+| `/founder-staffing` | Shift Planner | Workload per hour against the roster: overstaffed and understaffed slots, a new roster within the working-time rules, the saving. |
 
 **Always**
 

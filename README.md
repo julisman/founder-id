@@ -27,7 +27,7 @@ Lebaran, mudik, payday, 11.11 and 12.12).
 As a plugin, in Claude Code:
 
 ```
-/plugin marketplace add <your-github-user>/founder-id
+/plugin marketplace add julisman/founder-id
 /plugin install founder-id@founder-id
 ```
 
@@ -35,7 +35,7 @@ Installed as a plugin the skills show up as `/founder-id:founder-board` and so o
 Copy the folders instead if you want plain `/founder-board`:
 
 ```bash
-git clone https://github.com/<your-github-user>/founder-id.git
+git clone https://github.com/julisman/founder-id.git
 cp -r founder-id/skills/founder-* ~/.claude/skills/
 ```
 

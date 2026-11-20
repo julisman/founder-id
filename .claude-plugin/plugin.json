@@ -17,5 +17,7 @@
     "market-validation",
     "rupiah",
     "subagents"
-  ]
+  ],
+  "homepage": "https://github.com/julisman/founder-id",
+  "repository": "https://github.com/julisman/founder-id"
 }

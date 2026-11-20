@@ -153,6 +153,23 @@ thousand) and finds the acceptable range.
 python3 -m unittest discover -s tests -v
 ```
 
+## The dashboard
+
+A local, read-only web page to read the results while the skills run: the
+pipeline and the verdict, the four board memos, the buyer panel as tiles, the
+price curves, the CFO's year in Rupiah with a what-if simulator, every document,
+and rounds to compare two versions. Export it as one offline HTML file to send to
+a partner or a bank.
+
+```
+/founder-id:founder-gui                                  # from Claude Code
+python3 gui/serve.py --dir path/to/project               # or from a terminal
+python3 gui/demo.py /tmp/kopi-senja-demo                 # a demo project to try it
+```
+
+Standard library only, listens on 127.0.0.1, never starts a Claude session and
+never changes the skills' files. More in `gui/README.md`.
+
 ## Fine print
 
 **The board applies published frameworks. It is not those people.** Three lenses
@@ -201,7 +218,9 @@ skills/founder-launch/       SKILL.md
 skills/founder-plan/         SKILL.md, compile.py
 skills/founder-weekly-report/ skills/founder-pnl/ skills/founder-cashflow/
 skills/founder-cost-leak/    skills/founder-product-mix/ skills/founder-staffing/
-tests/                       the tests for every tool and the repo
+gui/                         the dashboard (serve.py, demo.py, founder_gui/, static/)
+commands/founder-gui.md      the /founder-id:founder-gui command
+tests/                       the tests for every tool, the dashboard and the repo
 ```
 
 Your own files live in `founder/` in your project. The skills read each other's.
@@ -209,8 +228,10 @@ Your own files live in `founder/` in your project. The skills read each other's.
 ## Credit
 
 The build skills are a fork of [founder-skill](https://github.com/Jakeschincariol/founder-skill)
-by Jake Schincariol ([opusjake.ai](https://opusjake.ai)), MIT. The run skills come
-from the AGJ finance skills for F&B owners. Both under the MIT licence in
+by Jake Schincariol ([opusjake.ai](https://opusjake.ai)), MIT. The dashboard is
+ported from Luis Siqueira's Founder GUI
+([pull request #5](https://github.com/Jakeschincariol/founder-skill/pull/5) on
+founder-skill, MIT). The run skills come from the AGJ finance skills for F&B owners. Both under the MIT licence in
 `LICENSE`.
 
 ## License

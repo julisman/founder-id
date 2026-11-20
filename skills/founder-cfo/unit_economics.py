@@ -224,7 +224,8 @@ def analyse(spec, price=None, volume=1.0):
         "days_per_month": days, "capacity_per_day": capacity, "year1_revenue": year_revenue,
         "year1_profit": year_profit, "year1_after_startup": cumulative,
         "payback_month": payback_month, "cash_needed": cash_needed, "months": months, "flags": flags,
-        "fixed_items": spec.get("fixed_monthly", []),
+        "fixed_items": spec.get("fixed_monthly", []), "startup_items": spec.get("startup", []),
+        "variable_items": [{"label": l, "cost": c, "kind": k} for l, c, k in var_lines],
     }
 
 
@@ -315,7 +316,7 @@ def main(argv=None):
         print("error: %s" % e, file=sys.stderr)
         return 2
     if args.json:
-        out = {k: v for k, v in a.items() if k != "fixed_items"}
+        out = {k: v for k, v in a.items() if not k.endswith("_items")}
         for k in ("breakeven_per_day", "breakeven_revenue_per_day"):
             out[k] = None if math.isinf(out[k]) else out[k]
         print(json.dumps(out, indent=1))

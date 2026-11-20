@@ -12,8 +12,7 @@ It joins two packs:
   Indonesia. A board of directors, a competitor scout, a consumer panel of 100
   simulated Indonesian buyers, pricing, the offer, a CFO, marketing, brand,
   operations, a launch plan and the business plan.
-- **Run** (after opening): the AGJ finance skills, translated to English and
-  widened from F&B to every business type. A Monday report, a P&L in plain words,
+- **Run** (after opening): the AGJ finance skills. A Monday report, a P&L in plain words,
   a 4-week cash forecast, a cost-leak check, product-mix analysis and staffing
   against busy hours.
 

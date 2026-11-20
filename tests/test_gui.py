@@ -139,7 +139,12 @@ class ProjectReads(unittest.TestCase):
         r = self.p.run()
         self.assertTrue(r["any"])
         counts = {k["kind"]: k["count"] for k in r["kinds"]}
-        self.assertEqual(counts, {"weekly": 6, "pnl": 2, "cashflow": 1, "cost-leak": 1, "product-mix": 1, "staffing": 1})
+        self.assertEqual(counts, {"weekly": 6, "pnl": 4, "cashflow": 1, "cost-leak": 1, "product-mix": 1, "staffing": 1})
+        self.assertEqual(r["targets"]["healthy_margin"], 0.10)  # read from profile.md
+        apr = r["reports"]["pnl"][0]
+        base = apr["net_sales"] + apr["platform_commission"]
+        parts = apr["direct_cost"] + apr["labour"] + apr["fixed_costs"] + apr["pph_final"] + apr["platform_commission"] + apr["net_profit"]
+        self.assertAlmostEqual(parts, base)  # the Rp100.000 split adds up to what came in
         self.assertEqual(sum(k["problems"] for k in r["kinds"]), 0)  # the demo passes its own checks
         self.assertEqual(r["reports"]["weekly"][0]["week"], "2027-W19")  # newest first
         self.assertEqual(round(r["targets"]["breakeven_week"]), 14494331)
@@ -148,6 +153,17 @@ class ProjectReads(unittest.TestCase):
         self.assertIn("1 week(s) at risk", st["run_summary"])
         self.assertIn("reports", {d["step"] for d in st["docs"]})
         json.dumps(r, allow_nan=False)
+
+    def test_healthy_margin_follows_profile(self):
+        path = os.path.join(self.p.fdir, "profile.md")
+        before = slurp(path)
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(before.replace("Healthy net margin: at least 10%", "Healthy net margin: at least 12,5%"))
+            self.assertEqual(self.p.run()["targets"]["healthy_margin"], 0.125)
+        finally:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(before)
 
     def test_build_only_demo_has_no_run_stage(self):
         d = tempfile.mkdtemp(prefix="fgui-")

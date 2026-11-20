@@ -281,7 +281,8 @@ def run_stage(d):
         _report(d, "weekly", wk, doc, "\n".join(md))
         prev = net
 
-    for month, net, dc in (("2027-03", 51975000, 0.452), ("2027-04", 76840000, 0.478)):
+    for month, net, dc in (("2027-01", 46200000, 0.441), ("2027-02", 50490000, 0.446),
+                           ("2027-03", 51975000, 0.452), ("2027-04", 76840000, 0.478)):
         gross = round(net / 0.92)
         direct = round(net * dc)
         labour = 18949846

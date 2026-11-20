@@ -352,6 +352,12 @@ class Project:
                 targets["direct_cost_alert"] = goods + 0.05
             except Exception:
                 pass
+        targets["healthy_margin"] = 0.10  # the founder-pnl default, unless profile.md says otherwise
+        for sec in self.profile() or []:
+            for k, v in sec["rows"]:
+                m = re.search(r"(\d+(?:[.,]\d+)?)\s*%", v)
+                if k.lower().startswith("healthy net margin") and m:
+                    targets["healthy_margin"] = float(m.group(1).replace(",", ".")) / 100
         kinds = [{"kind": k, "skill": v["skill"], "count": len(reports[k]),
                   "latest": reports[k][0]["_key"] if reports[k] else None,
                   "problems": sum(1 for d in reports[k] if d.get("_problems"))} for k, v in rp.KINDS.items()]

@@ -541,16 +541,45 @@
     }
 
     // P&L
-    const pnl = (R.pnl || []).slice().reverse();
+    const pnl = (R.pnl || []).filter(m => m.net_sales != null).slice().reverse();
     if (pnl.length) {
-      h += '<h2 style="margin:22px 0 10px">' + esc(t("Profit and loss by month")) + '</h2><div class="card"><div class="table-wrap"><table class="t"><thead><tr><th>' +
+      // one point per month: several outlets are added together for the charts, kept apart in the table
+      const months = [], byMonth = {};
+      pnl.forEach(m => {
+        const k = m.month;
+        if (!byMonth[k]) { byMonth[k] = { month: k, outlets: 0, net_sales: 0, platform_commission: 0, direct_cost: 0, labour: 0, fixed_costs: 0, pph_final: 0, other_costs: 0, net_profit: 0 }; months.push(byMonth[k]); }
+        const a = byMonth[k]; a.outlets += 1;
+        ["net_sales", "platform_commission", "direct_cost", "labour", "fixed_costs", "pph_final", "other_costs", "net_profit"].forEach(f => { a[f] += +m[f] || 0; });
+      });
+      months.sort((a, b) => a.month < b.month ? -1 : 1);
+      const multi = months.some(m => m.outlets > 1);
+      // "what comes in" is net sales before the apps take their cut, as in the owner's P&L
+      const per100k = m => {
+        const base = m.net_sales + m.platform_commission, k = base ? 100000 / base : 0;
+        return { base, stock: m.direct_cost * k, wages: m.labour * k, rent: m.fixed_costs * k, apps: m.platform_commission * k,
+          tax: (m.pph_final + m.other_costs) * k, owner: m.net_profit * k };
+      };
+      const last = months[months.length - 1], lp = per100k(last), hm = T.healthy_margin;
+      const lastMargin = last.net_sales ? last.net_profit / last.net_sales : null;
+      const rp = v => money(Math.round(v / 100) * 100);
+      h += '<h2 style="margin:22px 0 10px">' + esc(t("Profit and loss by month")) + (multi ? ' <small class="muted">' + esc(t("charts add the outlets together")) + "</small>" : "") + "</h2>";
+      h += '<div class="card" style="margin-bottom:14px"><h3>' + esc(t("In plain words, {m}", { m: last.month })) + '</h3><p style="font-size:15px;line-height:1.6">' +
+        esc(t("Of every Rp100.000 that comes in, {a} goes on stock and materials, {b} on wages, {c} on rent and bills, {d} on the apps' commission and {e} on tax.", {
+          a: rp(lp.stock), b: rp(lp.wages), c: rp(lp.rent), d: rp(lp.apps), e: rp(lp.tax) })) + " <b>" +
+        esc(lp.owner >= 0 ? t("What is left for the owner: {v}.", { v: rp(lp.owner) }) : t("Nothing is left for the owner: the business lost {v}.", { v: rp(-lp.owner) })) + "</b></p></div>";
+      h += '<div class="grid g2"><div class="card"><h2>' + esc(t("Where every Rp100.000 goes")) + '</h2><div id="run-pnl-split"></div></div>' +
+        '<div class="card"><div class="card-head"><h2>' + esc(t("Net margin by month")) + "</h2>" +
+        (lastMargin != null && hm != null ? chip(lastMargin >= hm ? "good" : "bad", t("{m}: {p}", { m: last.month, p: pct(lastMargin, 1) })) : "") + '</div><div id="run-pnl-margin"></div>' +
+        (hm != null ? '<p class="muted" style="font-size:12px">' + esc(t("Healthy is at least {p} (from profile.md).", { p: pct(hm) })) + "</p>" : "") + "</div></div>";
+      h += '<div class="card" style="margin-top:14px"><div class="table-wrap"><table class="t"><thead><tr><th>' +
         [t("month"), t("net sales"), t("direct cost"), t("labour"), t("fixed"), t("commission"), t("net profit"), t("net margin"), ""].map(esc).join('</th><th class="r">') + "</th></tr></thead><tbody>" +
         pnl.map(m => "<tr><td>" + esc(m.month + (m.outlet ? " · " + m.outlet : "")) + (m._problems && m._problems.length ? " " + chip("bad", t("does not add up")) : "") + '</td><td class="r">' + money(m.net_sales) +
           '</td><td class="r">' + money(m.direct_cost) + " <small>" + pct(m.direct_cost / m.net_sales) + '</small></td><td class="r">' + money(m.labour) + " <small>" + pct(m.labour / m.net_sales) +
           '</small></td><td class="r">' + money(m.fixed_costs) + '</td><td class="r">' + (m.platform_commission != null ? money(m.platform_commission) : "") + '</td><td class="r"><span class="' +
           (m.net_profit >= 0 ? "up" : "down") + '">' + money(m.net_profit) + '</span></td><td class="r">' + pct(m.net_profit / m.net_sales, 1) + '</td><td class="r">' + docLink(m) + "</td></tr>").join("") +
         "</tbody></table></div></div>";
-    }
+      S.ui.pnlCharts = { months, per100k, hm };
+    } else S.ui.pnlCharts = null;
 
     // cost leak, product mix, staffing
     const cl = (R["cost-leak"] || [])[0], pm = (R["product-mix"] || [])[0], sf = (R.staffing || [])[0];
@@ -588,6 +617,20 @@
       const dbe = w.breakeven_per_day || T.breakeven_day;
       Charts.bars($("#run-days"), { labels: (w.daily || []).map(x => x.day || x.date.slice(5)), values: (w.daily || []).map(x => x.net_sales), name: t("net sales"),
         line: dbe ? { name: t("break-even a day"), values: (w.daily || []).map(() => dbe) } : null, yfmt: money, height: 220 });
+    }
+    const pc = S.ui.pnlCharts;
+    if (pc) {
+      const parts = pc.months.map(pc.per100k);
+      Charts.stacked($("#run-pnl-split"), { labels: pc.months.map(m => m.month), yfmt: money, height: 260, series: [
+        { name: t("stock and materials"), color: "var(--c1)", values: parts.map(p => p.stock) },
+        { name: t("wages"), color: "var(--c5)", values: parts.map(p => p.wages) },
+        { name: t("rent and bills"), color: "var(--c4)", values: parts.map(p => p.rent) },
+        { name: t("apps' commission"), color: "var(--c2)", values: parts.map(p => p.apps) },
+        { name: t("tax"), color: "var(--ink-3)", values: parts.map(p => p.tax) },
+        { name: t("left for the owner"), color: "var(--good)", values: parts.map(p => Math.max(0, p.owner)) },
+        { name: t("loss"), color: "var(--bad)", values: parts.map(p => Math.min(0, p.owner)) }] });
+      Charts.bars($("#run-pnl-margin"), { labels: pc.months.map(m => m.month), values: pc.months.map(m => m.net_sales ? m.net_profit / m.net_sales : 0), name: t("net margin"),
+        line: pc.hm != null ? { name: t("healthy margin"), values: pc.months.map(() => pc.hm) } : null, yfmt: v => pct(v, 1), height: 260 });
     }
     if (cf && cf.weeks) Charts.bars($("#run-cash"), { labels: cf.weeks.map(x => "W" + x.label), values: cf.weeks.map(x => x.end_balance), name: t("end-of-week balance"),
       line: { name: t("cash in"), values: cf.weeks.map(x => x.cash_in) }, yfmt: money, height: 240 });

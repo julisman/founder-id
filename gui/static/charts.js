@@ -1,5 +1,6 @@
 /* Hand-written SVG charts, no library: lines with markers (price curves),
-   bars with an optional line (year 1), and a scatter (competitors).
+   bars with an optional line (year 1), stacked bars (where the money goes)
+   and a scatter (competitors).
    Colours come from CSS classes so light and dark themes both work. */
 (function () {
   "use strict";
@@ -141,5 +142,43 @@
     el.innerHTML = s;
   }
 
-  window.Charts = { line, bars, scatter };
+  /* spec: {labels, series:[{name, values, color}], yfmt, height}
+     Positive parts stack up from zero; a negative part (a loss) hangs below it. */
+  function stacked(el, spec) {
+    const H = spec.height || 280, pad = { l: 64, r: 16, t: 16, b: 28 };
+    const n = spec.labels.length, yfmt = spec.yfmt || (v => v);
+    let ymax = 0, ymin = 0;
+    for (let i = 0; i < n; i++) {
+      let up = 0, down = 0;
+      spec.series.forEach(se => { const v = se.values[i] || 0; if (v >= 0) up += v; else down += v; });
+      ymax = Math.max(ymax, up); ymin = Math.min(ymin, down);
+    }
+    const ys = scale(ymin, ymax, H - pad.b, pad.t), bw = (W - pad.l - pad.r) / n;
+    const cx = i => pad.l + bw * i + bw / 2;
+    let s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(spec.label || "stacked bars") + '">';
+    s += frame(H, pad, cx, ys, [], ticks(ymin, ymax, 5), String, yfmt);
+    spec.labels.forEach((l, i) => { s += '<text x="' + cx(i) + '" y="' + (H - pad.b + 16) + '" text-anchor="middle">' + esc(l) + "</text>"; });
+    for (let i = 0; i < n; i++) {
+      let up = 0, down = 0;
+      spec.series.forEach(se => {
+        const v = se.values[i] || 0;
+        if (!v) return;
+        const a = v >= 0 ? up : down, b = a + v;
+        const y = ys(Math.max(a, b)), h = Math.abs(ys(a) - ys(b));
+        s += '<rect x="' + (cx(i) - bw * .3) + '" y="' + y + '" width="' + bw * .6 + '" height="' + Math.max(h, 0.5) + '" style="fill:' + se.color + '"/>';
+        if (v >= 0) up = b; else down = b;
+      });
+    }
+    s += '<line x1="' + pad.l + '" x2="' + (W - pad.r) + '" y1="' + ys(0) + '" y2="' + ys(0) + '" style="stroke:var(--ink-3)"/>';
+    s += '<line class="hover-line" x1="0" x2="0" y1="' + pad.t + '" y2="' + (H - pad.b) + '" style="display:none"/>';
+    s += '<rect x="' + pad.l + '" y="' + pad.t + '" width="' + (W - pad.l - pad.r) + '" height="' + (H - pad.t - pad.b) + '" fill="transparent" class="hit"/></svg>';
+    el.classList.add("chart");
+    el.innerHTML = s + '<div class="tip" hidden></div><div class="keys">' +
+      spec.series.map(se => '<span><i style="background:' + se.color + '"></i>' + esc(se.name) + "</span>").join("") + "</div>";
+    hover(el, spec, null, W, i => "<b>" + esc(spec.labels[i]) + "</b><br>" +
+      spec.series.slice().reverse().map(se => esc(se.name) + ": <b>" + esc(yfmt(se.values[i] || 0)) + "</b>").join("<br>"),
+      x => Math.max(0, Math.min(n - 1, Math.floor((x - pad.l) / bw))), cx);
+  }
+
+  window.Charts = { line, bars, stacked, scatter };
 })();

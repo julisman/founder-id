@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "founder-id",
+  "description": "The founder-id skill pack for Claude: build and run a business in Indonesia",
+  "owner": {
+    "name": "AGJ"
+  },
+  "plugins": [
+    {
+      "name": "founder-id",
+      "description": "Eighteen Claude skills for founders in Indonesia: board, competitors, a consumer panel of 100 Indonesian buyer agents, pricing, the offer, a CFO in Rupiah, marketing, brand, operations, launch, the business plan, the Indonesia desk, and six run skills (weekly report, P&L, cash flow, cost leak, product mix, staffing).",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "business": "Kopi Senja (an example: a grab-and-go kopi susu kiosk in South Jakarta)",
+  "currency": "IDR",
+  "income_period": "month",
+  "target": "Office workers and students in South Jakarta, 20 to 35, who buy iced coffee 3 or more times a week",
+  "where": "South Jakarta, around Blok M and the MRT",
+  "age": [20, 35],
+  "segments": [
+    {"name": "Student or first job", "share": 0.35, "income": [1500000, 5500000]},
+    {"name": "Office staff", "share": 0.45, "income": [5500000, 12000000]},
+    {"name": "Manager or professional", "share": 0.20, "income": [12000000, 30000000]}
+  ],
+  "behaviours": [
+    {"name": "Promo hunter", "share": 0.22, "how": "Buys where the e-wallet cashback or app voucher is best this week."},
+    {"name": "Orders on the app", "share": 0.20, "how": "Orders coffee on GoFood or GrabFood to the office, rarely walks to a counter."},
+    {"name": "Daily regular", "share": 0.15, "how": "Buys the same es kopi susu at the same place on the way in."},
+    {"name": "Checks TikTok first", "share": 0.13, "how": "Tries a new place only after seeing it on TikTok or Instagram."},
+    {"name": "Loyal to a big chain", "share": 0.12, "how": "Has the app of a big kopi susu chain and collects its points."},
+    {"name": "Payday treat", "share": 0.10, "how": "Spends freely after payday, cuts back in the lean days before the next one."},
+    {"name": "Less sugar", "share": 0.08, "how": "Asks for less sugar, avoids drinks that feel heavy."}
+  ],
+  "objections": [
+    "Rp22.000 is more than the big chain with an app voucher",
+    "Is it on GoFood or GrabFood? I don't walk out for coffee",
+    "Never heard of it and there are no reviews yet",
+    "Kopi susu gula aren is everywhere, why this one?",
+    "The morning queue will make me late",
+    "Probably too sweet for me"
+  ],
+  "habits": [
+    "you take the MRT to Blok M every weekday",
+    "you work from home two days a week",
+    "you pay almost everything with QRIS or GoPay",
+    "you hang out at Blok M on Friday nights",
+    "you are saving for mudik this year"
+  ]
+}

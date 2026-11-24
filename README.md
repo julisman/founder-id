@@ -1,6 +1,6 @@
 # founder-id
 
-Eighteen Claude skills that test a business in Indonesia before you launch it,
+Nineteen Claude skills that test a business in Indonesia before you launch it,
 then help you run it once it is open. Free, MIT, no signup, no API key, nothing
 to connect. Numbers in Rupiah, rules from Indonesia, any kind of business: food
 and drink, retail, online sellers, cosmetics, services, digital.
@@ -48,7 +48,7 @@ tools, but the method works.
 
 The tools need Python 3.8 or newer. Nothing to pip install.
 
-## The eighteen
+## The nineteen
 
 **Build: before you open**
 
@@ -70,6 +70,7 @@ The tools need Python 3.8 or newer. Nothing to pip install.
 
 | command | job | what it does |
 | --- | --- | --- |
+| `/founder-templates` | Logbook | No POS yet? A daily sales and purchases logbook in Indonesian (Excel or Google Sheets, plus CSVs) in the exact columns the run skills read, with net sales, the week against break-even and direct cost as formulas, pre-filled from the profile. |
 | `/founder-weekly-report` | Weekly Reporter | The Monday report: last week against the week before, alerts only when a threshold is crossed, one action, a team version. |
 | `/founder-pnl` | Bookkeeper | The month's P&L in the owner's words, commissions and tax on their own lines, prive taken out. |
 | `/founder-cashflow` | Cash Manager | Cash week by week for 4 weeks with each channel's payout delay, supplier terms, payroll, THR, BPJS and tax; flags the weeks at risk. |
@@ -90,7 +91,7 @@ Run the build skills in this order. Each one reads what the others wrote, in a
 
 ```
 build:  board -> competitors -> consumer -> pricing -> offer -> cfo -> marketing -> brand -> ops -> launch -> plan
-run:    weekly-report every Monday; pnl and cashflow every month; cost-leak, product-mix, staffing when an alert says so
+run:    templates once if there is no POS; weekly-report every Monday; pnl and cashflow every month; cost-leak, product-mix, staffing when an alert says so
 always: indonesia
 ```
 
@@ -125,7 +126,7 @@ the tools on it.)
 
 ## The tools
 
-Five of them, all standard-library Python. None touch the network.
+Six of them, all standard-library Python. None touch the network.
 
 ```bash
 python3 skills/founder-cfo/unit_economics.py founder/numbers.json --out founder/cfo.md   # margins, break-even, year 1
@@ -133,6 +134,7 @@ python3 skills/founder-consumer/panel.py init --customer founder/customer.json -
 python3 skills/founder-pricing/van_westendorp.py founder/panel/answers --price 22000     # the acceptable price range
 python3 skills/founder-plan/compile.py --dir founder                                     # the plan, its verdict, the profile
 python3 skills/founder-weekly-report/reports.py check founder/reports/weekly/2027-W05.json # a saved run report adds up
+python3 skills/founder-templates/make_templates.py --dir founder --type fnb                # a logbook if there is no POS
 ```
 
 **`unit_economics.py`** reads one JSON (example: `skills/founder-cfo/example.json`).
@@ -151,6 +153,10 @@ CSV from a real survey; `22000`, `Rp22.000` and `22.000` all read as twenty-two
 thousand) and finds the acceptable range.
 
 **`compile.py`** assembles the plan, computes the verdict and writes the profile.
+
+**`make_templates.py`** writes the logbook (`founder/templates/catatan-harian.xlsx`)
+and two CSVs with a small built-in xlsx writer: the sheets hold formulas, never
+numbers, and the break-even and alert levels come from `founder/profile.md`.
 
 **`reports.py`** tells the run skills where to save each report and checks the
 arithmetic in it: daily sales add up to the week, cash balances chain week to week,
@@ -226,6 +232,7 @@ skills/founder-brand/        SKILL.md
 skills/founder-ops/          SKILL.md
 skills/founder-launch/       SKILL.md
 skills/founder-plan/         SKILL.md, compile.py
+skills/founder-templates/    SKILL.md, make_templates.py
 skills/founder-weekly-report/ SKILL.md, reports.py (shared by every run skill)
 skills/founder-pnl/          skills/founder-cashflow/
 skills/founder-cost-leak/    skills/founder-product-mix/ skills/founder-staffing/

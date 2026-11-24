@@ -1,7 +1,7 @@
 {
   "name": "founder-id",
-  "description": "Eighteen free Claude skills to test a business in Indonesia before you launch it and run it once it is open: a board, a consumer panel of 100 Indonesian buyer agents, a CFO in Rupiah, marketing, ops and the plan, then a Monday report, P&L, cash flow, cost leaks, product mix and staffing. Free, MIT.",
-  "version": "1.2.3",
+  "description": "Nineteen free Claude skills to test a business in Indonesia before you launch it and run it once it is open: a board, a consumer panel of 100 Indonesian buyer agents, a CFO in Rupiah, marketing, ops and the plan, then a no-POS logbook, a Monday report, P&L, cash flow, cost leaks, product mix and staffing. Free, MIT.",
+  "version": "1.3.0",
   "author": {
     "name": "AGJ"
   },

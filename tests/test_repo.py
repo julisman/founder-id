@@ -9,7 +9,8 @@ BUILD = ["founder-board", "founder-competitors", "founder-consumer", "founder-pr
          "founder-marketing", "founder-brand", "founder-ops", "founder-launch", "founder-plan"]
 RUN = ["founder-weekly-report", "founder-pnl", "founder-cashflow", "founder-cost-leak", "founder-product-mix",
        "founder-staffing"]
-SKILLS = BUILD + RUN + ["founder-indonesia"]
+SETUP = ["founder-templates"]
+SKILLS = BUILD + RUN + SETUP + ["founder-indonesia"]
 REFERENCE = ["tax.md", "permits.md", "payroll.md", "payments-channels.md", "calendar.md", "sources.md"]
 
 
@@ -32,7 +33,7 @@ def text_files():
 
 
 class Repo(unittest.TestCase):
-    def test_eighteen_skill_folders(self):
+    def test_nineteen_skill_folders(self):
         found = sorted(d for d in os.listdir(SKILLS_DIR) if os.path.isfile(os.path.join(SKILLS_DIR, d, "SKILL.md")))
         self.assertEqual(found, sorted(SKILLS))
 

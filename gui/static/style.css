@@ -337,7 +337,7 @@ mark.del { background: var(--bad-soft); color: var(--bad); text-decoration: line
 .empty-state[style*="text-align:left"] h1::before { margin-left: 0; }
 .empty-state p { font-size: 15px; }
 .empty-state pre { text-align: left; background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; border-radius: 12px; font: 12.5px/1.6 var(--mono); overflow-x: auto; box-shadow: var(--shadow); }
-.empty { color: var(--ink-3); font-size: 13px; padding: 28px 16px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--radius); background: color-mix(in srgb, var(--panel) 50%, transparent); }
+div.empty:not(.step) { color: var(--ink-3); font-size: 13px; padding: 28px 16px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--radius); background: color-mix(in srgb, var(--panel) 50%, transparent); }
 .copy { cursor: pointer; }
 code.copy:hover { border-color: var(--accent); color: var(--accent); }
 .snapshot-note { font-size: 12px; background: var(--warn-soft); color: var(--warn); font-weight: 500; padding: 5px 12px; border-radius: 99px; }
@@ -372,3 +372,6 @@ code.copy:hover { border-color: var(--accent); color: var(--accent); }
 /* founder-id: Rupiah amounts never break mid-number */
 .t td.r, .md td { white-space: nowrap; }
 .md table { display: block; overflow-x: auto; }
+/* a step that has not run yet: quiet, not a placeholder box */
+.step.empty h3 { color: var(--ink-2); }
+.step.empty .role { color: var(--ink-3); }

@@ -10,15 +10,23 @@
 </head>
 <body>
 <div id="app">
-  <aside id="side">
-    <div class="brand"><span class="logo">F</span><div><b>founder-id</b><small id="hub-note"></small></div></div>
-    <nav id="projects"></nav>
-    <form id="add-project" class="add-project">
-      <input name="path" placeholder="/path/to/project" autocomplete="off" spellcheck="false">
-      <button type="submit" data-i18n="add">Add</button>
-    </form>
+  <header id="side" class="topbar">
+    <div class="switcher">
+      <button id="proj-toggle" class="brand" type="button" aria-haspopup="true" aria-expanded="false">
+        <span class="logo">F</span><span class="brand-text"><b id="proj-name">founder-id</b><small id="hub-note"></small></span><span class="caret">▾</span>
+      </button>
+      <div id="proj-menu" class="menu" hidden>
+        <div class="menu-label">Projects</div>
+        <nav id="projects"></nav>
+        <form id="add-project" class="add-project">
+          <input name="path" placeholder="/path/to/project" autocomplete="off" spellcheck="false">
+          <button type="submit" data-i18n="add">Add</button>
+        </form>
+      </div>
+    </div>
+    <nav id="topnav" class="tabs"></nav>
     <div class="side-foot"><button id="theme" class="link"></button><button id="stop-hub" class="link" title="Stop the dashboard server (your files stay)">■ stop</button></div>
-  </aside>
+  </header>
   <main id="main"><div class="empty-state" id="welcome"></div></main>
 </div>
 <div id="drawer" class="drawer" hidden><div class="drawer-body"></div></div>

@@ -42,6 +42,13 @@ subcontractors for services. Use the business's own word in the report.
 If last week's purchases are missing, write the report without the direct-cost
 line and say so under "Not recorded".
 
+No POS and no exports at all? Suggest `/founder-templates`. It writes
+`founder/templates/catatan-harian.xlsx`, a daily logbook in exactly these columns.
+When the data comes from that logbook:
+
+- **Net sales:** use the **Penjualan bersih** column.
+- **The example row:** skip any row whose Catatan starts with "CONTOH".
+- **Estimated fees:** an app-channel row with **Komisi & biaya platform** blank used the rate estimate. List those dates under "Not recorded" as "platform fee estimated".
 
 `founder/profile.md` is written by `/founder-plan`. A business that skipped the
 build stage often has its own outlet profile instead (an owner's notes, a course

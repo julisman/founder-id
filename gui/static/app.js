@@ -536,7 +536,7 @@
     const r = await api(P("run"));
     const R = r.reports, T = r.targets;
     if (!r.any) {
-      el.innerHTML = '<div class="empty-state" style="text-align:left;max-width:720px"><h1>' + esc(t("After opening")) + "</h1><p>" +
+      el.innerHTML = '<div class="empty-state" style="text-align:left;max-width:720px"><h1>' + esc(t("Reports")) + "</h1><p>" +
         esc(t("Once the business is open, the run skills save every report in founder/reports/ and this page turns them into trends: weekly sales against break-even, direct cost, the cash forecast, the P&L month by month.")) +
         "</p><pre>" + Object.keys(RUN_CMD).map(k => runCmd(k)).join("\n") + "</pre></div>";
       return;

@@ -35,7 +35,7 @@ python3 gui/serve.py --stop      # stop it; your founder/ files and the project 
 | Pricing | the Van Westendorp curves in Rupiah with the acceptable range, your price, competitor prices and the unit cost |
 | Offer | the pitch before and after, word by word |
 | CFO | the key numbers, year 1 month by month (profit and cash side by side, the season multiplier, THR and other one-off costs), the three what-ifs, and a what-if simulator (price, volume, unit costs, commissions and fees, fixed and startup costs) that runs `unit_economics.py` on a copy |
-| After opening | the run skills' saved reports as trends: net sales by week against break-even, direct cost by week against its alert, last week day by day, channels, every alert and action, the 4-week cash forecast with the weeks at risk, the P&L month by month (in plain words, where every Rp100.000 goes as stacked bars, and net margin against the healthy margin in `profile.md`), the latest cost leak, product mix and staffing heatmap |
+| Reports | the run skills' saved reports as trends: net sales by week against break-even, direct cost by week against its alert, last week day by day, channels, every alert and action, the 4-week cash forecast with the weeks at risk, the P&L month by month (in plain words, where every Rp100.000 goes as stacked bars, and net margin against the healthy margin in `profile.md`), the latest cost leak, product mix and staffing heatmap |
 | Docs | every file in `founder/`, rendered, including `profile.md` and the saved reports |
 | Rounds | dated copies of `founder/`, compared side by side |
 
@@ -57,7 +57,7 @@ python3 gui/serve.py --stop      # stop it; your founder/ files and the project 
 
 It never starts a Claude session and never changes the skills' files.
 
-## After opening
+## Reports (after opening)
 
 The run skills answer in the chat and also save each report in
 `founder/reports/<kind>/` as a `.md` (the report as shown) and a `.json` (its key

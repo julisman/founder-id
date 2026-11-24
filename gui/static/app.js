@@ -98,23 +98,42 @@
         "<span>" + esc(ago(p.updated)) + "</span></div></a>";
     }).join("") || '<div class="muted" style="padding:6px">' + esc(t("No projects yet")) + "</div>";
     $("#hub-note").textContent = SNAP ? t("Exported report") : t("{n} projects", { n: S.projects.length });
+    const cur = S.projects.find(p => p.id === S.pid);
+    $("#proj-name").textContent = cur ? cur.name : (S.st && S.st.name) || "founder-id";
   }
+  // the project switcher in the top bar
+  function menu(open) {
+    const m = $("#proj-menu"), b = $("#proj-toggle");
+    m.hidden = !open; b.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  $("#proj-toggle").onclick = e => { e.stopPropagation(); menu($("#proj-menu").hidden); };
+  document.addEventListener("click", e => { if (!e.target.closest("#proj-menu")) menu(false); });
+  window.addEventListener("hashchange", () => menu(false));
 
   // ── main frame ───────────────────────────────────────────────────────────────
   async function render() {
     parseHash();
     renderProjects();
     const main = $("#main");
-    if (!S.pid) { main.innerHTML = welcome(); return; }
+    if (!S.pid) { main.innerHTML = welcome(); $("#topnav").innerHTML = ""; return; }
     try {
       S.st = await api(P("state"));
     } catch (e) {
       main.innerHTML = '<div class="empty-state"><h1>' + esc(t("Project not found")) + "</h1><p>" + esc(e.message) + "</p></div>";
+      $("#topnav").innerHTML = "";
       return;
     }
+    await loadCfo();
+    renderProjects();
     main.innerHTML = '<div id="hdr">' + header() + '</div><div id="view"></div>';
+    $("#topnav").innerHTML = tabs();
     bindHeader();
     await renderView();
+  }
+  // the hero's headline numbers come from the CFO; none until it has run
+  async function loadCfo() {
+    S.cfo = null;
+    try { const c = await api(P("cfo")); if (c.spec && !c.error) S.cfo = c.analysis; } catch (e) { /* not run yet */ }
   }
 
   function welcome() {
@@ -125,21 +144,38 @@
 
   function header() {
     const st = S.st, v = st.verdict.verdict;
-    const running = st.steps.filter(s => s.status === "running").map(s => s.key);
-    let h = '<div class="head"><div><h1>' + esc(st.name) + '</h1><div class="path">' + esc(st.root) + "</div></div>" +
+    const done = st.steps.filter(s => s.status === "done").length, total = st.steps.length;
+    const full = S.tab === "pipeline";
+    let h = '<section class="hero v-' + esc(v.replace(" ", "-")) + (full ? "" : " compact") + '"><div class="head"><div>' +
+      '<div class="eyebrow">' + esc(t("Business plan")) + " · " + done + "/" + total + " " + esc(t("steps")) + "</div><h1>" + esc(st.name) + '</h1><div class="path">' + esc(st.root) + "</div></div>" +
       '<div class="actions"><span class="verdict ' + esc(v.replace(" ", "-")) + '">' + esc(t(v)) + "</span>";
     if (SNAP) h += '<span class="snapshot-note">' + esc(t("Exported {d}, read-only", { d: new Date(SNAP.exported * 1000).toLocaleString(LOC()) })) + "</span>";
     else h += '<a class="btn" href="/api/p/' + S.pid + '/export">⤓ ' + esc(t("Export HTML")) + "</a>" +
       '<button class="btn" id="snap-btn">◷ ' + esc(t("Save round")) + "</button>" +
       '<button class="btn danger sm" id="forget">' + esc(t("Forget")) + "</button>";
     h += "</div></div>";
+    if (full) {
+      const a = S.cfo;
+      const big = (val, label, cls) => '<div class="hk"><div class="hv' + (cls ? " " + cls : "") + '">' + esc(val) + '</div><div class="hl">' + esc(label) + "</div></div>";
+      h += a ? '<div class="hero-kpis">' +
+          big(money(a.year1_profit), t("year 1 operating profit"), a.year1_profit < 0 ? "neg" : "") +
+          big(intf(a.breakeven_per_day) + " / " + t("day"), t("{u}s a day to break even", { u: a.unit })) +
+          big(pct(a.margin_at_plan), t("profit margin at plan ({n}/day)", { n: a.plan_per_day })) +
+          big(a.payback_month ? t("month {m}", { m: a.payback_month }) : t("not in year 1"), t("startup money earned back")) + "</div>"
+        : '<div class="hero-kpis empty-kpis"><div class="hk"><div class="hv">' + done + "/" + total + '</div><div class="hl">' + esc(t("steps done")) +
+          '</div></div><div class="hk wide"><div class="hl">' + esc(t("The headline numbers appear here once the CFO has run.")) + "</div></div></div>";
+    }
+    h += '<div class="hero-bar" title="' + done + "/" + total + '"><i style="width:' + (100 * done / Math.max(1, total)) + '%"></i></div></section>';
     if (S.query.round) h += '<div class="banner info" style="margin-top:14px"><span>' + esc(t("Viewing round {r} (read-only copy).", { r: S.query.round })) +
       '</span><a class="btn sm" href="#/p/' + S.pid + "/" + S.tab + '">' + esc(t("Back to current")) + "</a></div>";
-    const tabStep = tab => (TAB_STEPS[tab] || []).some(k => running.includes(k));
-    h += '<nav class="tabs">' + TABS.filter(x => !(SNAP && x === "rounds")).map(x =>
-      '<a href="#/p/' + S.pid + "/" + x + (S.query.round ? "?round=" + encodeURIComponent(S.query.round) : "") + '" class="' + (x === S.tab ? "on" : "") + '">' + esc(t("tab." + x)) +
-      (tabStep(x) ? '<span class="dot"></span>' : "") + "</a>").join("") + "</nav>";
     return h;
+  }
+  function tabs() {
+    const running = S.st.steps.filter(s => s.status === "running").map(s => s.key);
+    const tabStep = tab => (TAB_STEPS[tab] || []).some(k => running.includes(k));
+    return TABS.filter(x => !(SNAP && x === "rounds")).map(x =>
+      '<a href="#/p/' + S.pid + "/" + x + (S.query.round ? "?round=" + encodeURIComponent(S.query.round) : "") + '" class="' + (x === S.tab ? "on" : "") + '">' + esc(t("tab." + x)) +
+      (tabStep(x) ? '<span class="dot"></span>' : "") + "</a>").join("");
   }
 
   function bindHeader() {
@@ -170,10 +206,23 @@
     const st = S.st;
     const checks = st.verdict.checks.map(c => '<li><span class="ic ' + (c.ok ? "ok" : "ko") + '">' + (c.ok ? "✓" : "✗") + "</span><span>" + esc(c.text) + "</span></li>").join("");
     const next = st.next;
-    let h = '<div class="grid g-side">';
+    const done = st.steps.filter(s => s.status === "done").length;
+    const openOf = s => STEP_TAB[s.key] ? "#/p/" + S.pid + "/" + STEP_TAB[s.key] : "#/p/" + S.pid + "/docs/" + encodeURIComponent(s.primary);
+    let h = '<div class="card tracker-card"><div class="card-head"><h2>' + esc(t("The eleven steps")) + '</h2><span class="muted num">' + done + "/" + st.steps.length + "</span></div><ol class=\"tracker\">";
+    st.steps.forEach((s, i) => {
+      const tip = t("role." + s.key) + (s.stale_by.length ? " · " + t("changed since: {f}", { f: s.stale_by.join(", ") }) : "");
+      const inner = '<span class="node">' + (s.status === "done" ? "✓" : i + 1) + '</span><span class="tname">' + esc(stepName(s.key)) + '</span><span class="tmeta">' +
+        esc(t("status." + s.status)) + (s.updated ? " · " + esc(ago(s.updated)) : "") + "</span>";
+      h += '<li class="tstep ' + s.status + (s.key === next ? " next" : "") + '">' + (s.files.length ? '<a href="' + openOf(s) + '" title="' + esc(tip) + '">' + inner + "</a>"
+        : '<button class="copy" data-copy="' + esc(cmd(s.key)) + '" title="' + esc(tip + " · " + t("Copy the command")) + '">' + inner + "</button>") + "</li>";
+    });
+    h += "</ol>";
+    if (next) h += '<div class="next-call"><div><div class="eyebrow">' + esc(t("Next step:")) + "</div><h3>" + esc(stepName(next)) + "</h3><p>" + esc(t("role." + next)) + "</p></div>" +
+      '<button class="btn primary copy" data-copy="' + esc(cmd(next)) + '">⧉ ' + esc(cmd(next)) + "</button></div>";
+    h += "</div>";
+    h += '<div class="grid g-side" style="margin-top:16px">';
     h += '<div class="card"><div class="card-head"><h2>' + esc(t("Verdict")) + '</h2><span class="verdict ' + esc(st.verdict.verdict.replace(" ", "-")) + '">' + esc(t(st.verdict.verdict)) + "</span></div>" +
-      (checks ? '<ul class="checks">' + checks + "</ul>" : '<p class="muted">' + esc(t("No numbers yet. The verdict is computed once the CFO has run.")) + "</p>") +
-      (next ? '<div class="banner info" style="margin:14px 0 0"><span>' + esc(t("Next step:")) + " <b>" + esc(stepName(next)) + "</b> <code class=\"copy\" data-copy=\"" + esc(cmd(next)) + '">' + esc(cmd(next)) + "</code></span></div>" : "") + "</div>";
+      (checks ? '<ul class="checks">' + checks + "</ul>" : '<p class="muted">' + esc(t("No numbers yet. The verdict is computed once the CFO has run.")) + "</p>") + "</div>";
     h += '<div class="card"><h2>' + esc(t("Board conditions")) + "</h2>" + checklist(st.checklist) + "</div></div>";
     if (st.profile) h += '<div class="card" style="margin-top:14px"><div class="card-head"><h2>' + esc(t("Business profile")) + '</h2><a class="btn sm" href="#/p/' + S.pid + '/docs/profile.md">profile.md</a></div>' +
       '<p class="muted" style="font-size:12px;margin-top:-4px">' + esc(t("Written by founder-plan from the numbers. The run skills read their targets and alert thresholds here.")) + '</p><div class="grid g3">' +
@@ -181,17 +230,6 @@
         esc(v) + "</td></tr>").join("") + "</table></div>").join("") + "</div></div>";
     if (st.run_summary) h += '<div class="banner info" style="margin-top:14px"><span>' + esc(t("After opening: {s}", { s: st.run_summary })) +
       '</span><a class="btn sm" href="#/p/' + S.pid + '/run">' + esc(t("Open")) + "</a></div>";
-    h += '<h2 style="margin:22px 0 10px">' + esc(t("The eleven steps")) + '</h2><div class="pipe">';
-    for (const s of st.steps) {
-      const open = STEP_TAB[s.key] ? "#/p/" + S.pid + "/" + STEP_TAB[s.key] : "#/p/" + S.pid + "/docs/" + encodeURIComponent(s.primary);
-      h += '<div class="step ' + s.status + (s.key === next ? " next" : "") + '"><h3>' + esc(stepName(s.key)) + '</h3><div class="role">' + esc(t("role." + s.key)) + "</div>" +
-        '<div class="row">' + chip(s.status, t("status." + s.status)) + (s.updated ? "<small>" + esc(ago(s.updated)) + "</small>" : "") +
-        "</div>" +
-        (s.stale_by.length ? '<div class="row"><small>' + esc(t("changed since: {f}", { f: s.stale_by.join(", ") })) + "</small></div>" : "") +
-        '<div class="acts">' + (s.files.length ? '<a class="btn sm" href="' + open + '">' + esc(t("Open")) + "</a>" : "") +
-        '<button class="btn sm copy" data-copy="' + esc(cmd(s.key)) + '" title="' + esc(t("Copy the command")) + '">⧉</button></div></div>';
-    }
-    h += "</div>";
     el.innerHTML = h;
     bindChecklist(el);
   };
@@ -719,7 +757,9 @@
     try { S.st = await api(P("state")); } catch (e) { return; }
     const hdr = $("#hdr");
     if (!hdr) return;
+    await loadCfo();
     hdr.innerHTML = header();
+    $("#topnav").innerHTML = tabs();
     bindHeader();
   }
   // throttled, not debounced: while a skill writes, events arrive every second and a debounce would never fire

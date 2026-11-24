@@ -19,7 +19,7 @@
     "add": "Add",
     "lens.title": "{l} lens",
     "tab.pipeline": "Pipeline", "tab.board": "Board", "tab.competitors": "Competitors", "tab.panel": "Panel", "tab.pricing": "Pricing",
-    "tab.offer": "Offer", "tab.cfo": "CFO", "tab.run": "After opening", "tab.docs": "Docs", "tab.rounds": "Rounds",
+    "tab.offer": "Offer", "tab.cfo": "CFO", "tab.run": "Reports", "tab.docs": "Docs", "tab.rounds": "Rounds",
     "status.empty": "not started", "status.partial": "partial", "status.done": "done", "status.stale": "re-run", "status.running": "running",
   };
   for (const [k, v] of Object.entries(STEPS)) { en["step." + k] = v[0]; en["role." + k] = v[1]; }
